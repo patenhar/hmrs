@@ -1,40 +1,56 @@
 package com.hrms.backend.filters;
 
+import com.hrms.backend.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
+@Slf4j
 @Component
 public class AuthFilter extends OncePerRequestFilter {
+    private final JwtUtil jwtUtil;
+    private final UserDetailsService userDetailsService;
+
+    @Autowired
+    public AuthFilter(JwtUtil jwtUtil, @Lazy UserDetailsService userDetailsService) {
+        this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
+    }
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest req,
-            HttpServletResponse res,
-            FilterChain filterChain
+            @NonNull HttpServletResponse res,
+            @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
         if (req.getRequestURI().startsWith("/api/auth")
-                || req.getRequestURI().startsWith("swagger")
-                || req.getRequestURI().startsWith("/swagger-ui")
-                || req.getRequestURI().startsWith("/v3/api-docs")
-                || req.getRequestURI().startsWith("/swagger-resources")
-                || req.getRequestURI().startsWith("/webjars")) {
+                || req.getRequestURI().contains("swagger")
+                || req.getRequestURI().contains("/v3/api-docs")
+                || req.getRequestURI().contains("actuator")
+        ) {
             filterChain.doFilter(req, res);
             return;
         }
 
         String authHeader = req.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.equals("Bearer something")) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             res.setStatus(HttpStatus.UNAUTHORIZED.value());
             res.setContentType("application/json");
             res.getWriter().write("""
@@ -46,7 +62,16 @@ public class AuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("dummy", null, List.of()));
+        String token = authHeader.substring(7);
+        String email = jwtUtil.getEmail(token);
+        log.info(email);
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            log.info(email, userDetails);
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(email, null, userDetails.getAuthorities());
+            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        }
         filterChain.doFilter(req, res);
     }
 }
