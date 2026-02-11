@@ -8,15 +8,15 @@ import com.hrms.backend.services.interfaces.IAuthService;
 import com.hrms.backend.utils.ApiResponse;
 import com.hrms.backend.utils.JwtUtil;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 
 @Service
 public class AuthService implements IAuthService {
@@ -27,7 +27,8 @@ public class AuthService implements IAuthService {
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
 
-    AuthService(UserRepo userRepo, ModelMapper modelMapper, JwtUtil jwtUtil, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
+    @Autowired
+    public AuthService(UserRepo userRepo, ModelMapper modelMapper, JwtUtil jwtUtil, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.modelMapper = modelMapper;
         this.jwtUtil = jwtUtil;
@@ -52,7 +53,7 @@ public class AuthService implements IAuthService {
                 )
         );
 
-        String token = jwtUtil.generateToken(loginDto.getEmail());
+        String token = jwtUtil.generateToken(auth.getName());
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("login successful", token));
     }
 }

@@ -18,7 +18,7 @@ public class UserInfoUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority("ROLE_"+ user.getEmail().toUpperCase()));
+        return Collections.singleton(new SimpleGrantedAuthority("PERMISSION_"+ user.getRole().getPermissions().stream().map(permission -> permission.getPermissionName().toUpperCase()).toList()));
     }
 
     @Override
