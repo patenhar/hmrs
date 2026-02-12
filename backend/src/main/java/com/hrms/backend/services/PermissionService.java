@@ -44,7 +44,8 @@ public class PermissionService implements IPermissionService {
     @Override
     public ApiResponse<Permission> updatePermission(UUID id, PermissionDto permissionDto) {
         Permission permission = findById(id);
-        permission.setPermissionName(permissionDto.getPermissionName());
+        modelMapper.map(permissionDto, permission);
+        permissionRepo.save(permission);
         return new ApiResponse<>("Successfully updated the permission", findById(id));
     }
 

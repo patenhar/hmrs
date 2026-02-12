@@ -56,13 +56,15 @@ public class RoleService implements IRoleService {
 
     @Override
     public ApiResponse<Role> updateRole(UUID id, RoleDto roleDto) {
-        Role role = findById(id);
+        Role updatedRole = findById(id);
         List<Permission> permissions = roleDto.getPermissionIds()
                 .stream()
                 .map(i -> permissionRepo.findById(i).orElseThrow(() -> new ResourceNotFoundException("invalid permission id")))
                 .toList();
-        role.setRoleName(roleDto.getRoleName());
-        role.setPermissions(permissions);
+        updatedRole.setRoleName(roleDto.getRoleName());
+        updatedRole.setPermissions(permissions);
+        Role role = findById(id);
+        modelMapper.map(updatedRole, role);
         roleRepo.save(role);
         return new ApiResponse<>("role updated successfully", role);
     }

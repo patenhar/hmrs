@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.UUID;
 
 public interface IUserService {
-    ResponseEntity<ApiResponse<List<User>>> getAll();
+    ApiResponse<List<User>> getAll();
 
-    ResponseEntity<ApiResponse<?>> getById(UUID id);
+    ApiResponse<User> getById(UUID id);
 
-    ResponseEntity<ApiResponse<User>> updateRole(UUID id, UUID roleId);
+    ApiResponse<User> updateRole(UUID id, UUID roleId);
 
-    ResponseEntity<ApiResponse<String>> delete(UUID id);
+    ApiResponse<String> delete(UUID id);
 }

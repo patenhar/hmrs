@@ -5,15 +5,13 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import java.time.LocalDateTime;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "Users")
 @Getter @Setter
-public class User {
+public class User extends AuditableTimestamp {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID pkUserId;
@@ -24,16 +22,10 @@ public class User {
     private String email;
 
     @NotBlank
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String password;
 
-    @CreatedDate()
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate()
-    private LocalDateTime updatedAt;
-
-    @OneToOne()
+    @ManyToOne()
     @JoinColumn(name = "fk_role_id", referencedColumnName = "pkRoleId")
     private Role role;
 }

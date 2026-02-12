@@ -7,6 +7,7 @@ import com.hrms.backend.repos.UserRepo;
 import com.hrms.backend.services.interfaces.IAuthService;
 import com.hrms.backend.utils.ApiResponse;
 import com.hrms.backend.utils.JwtUtil;
+import com.hrms.backend.utils.ResourceNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -41,11 +42,19 @@ public class AuthService implements IAuthService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>("user is already registered", null));
         }
         registerDto.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-        userRepo.save(modelMapper.map(registerDto, User.class));
+//        userRepo.save(modelMapper.map(registerDto, User.class));
+        User user = new User();
+        user.setEmail(registerDto.getEmail());
+        user.setPassword(registerDto.getPassword());
+        userRepo.save(user);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("user registered successfully", userRepo.findByEmail(registerDto.getEmail())));
     }
 
     public ResponseEntity<ApiResponse<String>> login(LoginDto loginDto) {
+        User user = userRepo.findByEmail(loginDto.getEmail());
+        if(user == null) {
+            throw new ResourceNotFoundException("user not found");
+        }
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginDto.getEmail(),

@@ -1,13 +1,16 @@
 package com.hrms.backend.utils;
 
+import com.hrms.backend.entities.Permission;
+import com.hrms.backend.entities.Role;
 import com.hrms.backend.entities.User;
 import io.micrometer.common.lang.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 public class UserInfoUserDetails implements UserDetails {
     private final User user;
@@ -18,7 +21,14 @@ public class UserInfoUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority("PERMISSION_"+ user.getRole().getPermissions().stream().map(permission -> permission.getPermissionName().toUpperCase()).toList()));
+        if (user.getRole() == null || user.getRole().getPermissions() == null) {
+            return new ArrayList<>();
+        }
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        for (Permission permission : user.getRole().getPermissions()) {
+                authorities.add(new SimpleGrantedAuthority(permission.getPermissionName().toUpperCase()));
+        }
+        return authorities;
     }
 
     @Override

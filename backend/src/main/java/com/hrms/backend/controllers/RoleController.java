@@ -36,7 +36,7 @@ public class RoleController {
         return ResponseEntity.status(HttpStatus.OK).body(roleService.add(roleDto));
     }
 
-    @PatchMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<Role>> updateRole(@PathVariable UUID id, @RequestBody RoleDto roleDto) {
         return ResponseEntity.status(HttpStatus.OK).body(roleService.updateRole(id, roleDto));
     }

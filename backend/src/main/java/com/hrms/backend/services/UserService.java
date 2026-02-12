@@ -6,6 +6,7 @@ import com.hrms.backend.repos.UserRepo;
 import com.hrms.backend.services.interfaces.IUserService;
 import com.hrms.backend.utils.ApiResponse;
 import com.hrms.backend.utils.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class UserService implements IUserService {
     private final UserRepo userRepo;
@@ -30,27 +32,27 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse<List<User>>> getAll() {
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Users fetched successfully", userRepo.findAll()));
+    public ApiResponse<List<User>> getAll() {
+        return new ApiResponse<>("Users fetched successfully", userRepo.findAll());
     }
 
     @Override
-    public ResponseEntity<ApiResponse<?>> getById(UUID id) {
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("User fetched successfully", findById(id)));
+    public ApiResponse<User> getById(UUID id) {
+        return new ApiResponse<>("User fetched successfully", findById(id));
     }
 
     @Override
-    public ResponseEntity<ApiResponse<User>> updateRole(UUID id, UUID roleId) {
+    public ApiResponse<User> updateRole(UUID id, UUID roleId) {
         User user = findById(id);
         user.setRole(roleRepo.findById(roleId).orElseThrow(() -> new ResourceNotFoundException("invalid role id")));
         userRepo.save(user);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("User role updated successfully", user));
+        return new ApiResponse<>("User role updated successfully", user);
     }
 
     @Override
-    public ResponseEntity<ApiResponse<String>> delete(UUID id) {
+    public ApiResponse<String> delete(UUID id) {
         findById(id);
         userRepo.deleteById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("User deleted successfully", null));
+        return new ApiResponse<>("User deleted successfully", null);
     }
 }
