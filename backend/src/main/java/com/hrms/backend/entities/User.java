@@ -1,11 +1,15 @@
 package com.hrms.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -28,4 +32,7 @@ public class User extends AuditableTimestamp {
     @ManyToOne()
     @JoinColumn(name = "fk_role_id", referencedColumnName = "pkRoleId")
     private Role role;
+
+    @OneToMany(mappedBy = "user")
+    private List<UserTravel> userTravels = new ArrayList<>();
 }

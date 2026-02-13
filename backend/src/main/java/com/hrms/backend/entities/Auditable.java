@@ -17,9 +17,9 @@ import java.util.UUID;
 public abstract class Auditable extends AuditableTimestamp  {
     @CreatedBy
     @Column(updatable = false)
-    private UUID createdBy;
+    private String createdBy;
 
     @LastModifiedBy
     @Column(insertable = false)
-    private UUID updatedBy;
+    private String updatedBy;
 }

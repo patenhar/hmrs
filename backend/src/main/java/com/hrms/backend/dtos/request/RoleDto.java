@@ -1,5 +1,7 @@
 package com.hrms.backend.dtos.request;
 
+import com.hrms.backend.validations.OnCreate;
+import com.hrms.backend.validations.OnUpdate;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -12,10 +14,8 @@ import java.util.UUID;
 
 @NoArgsConstructor @AllArgsConstructor @Getter @Setter
 public class RoleDto {
-    @NotBlank
-    @Column(unique = true)
+    @NotBlank(message = "Role name is required", groups = {OnCreate.class, OnUpdate.class})
     private String roleName;
 
-    @NotBlank
     private List<UUID> permissionIds = new ArrayList<>();
 }

@@ -1,13 +1,13 @@
 package com.hrms.backend.services;
 
-import com.hrms.backend.dtos.request.LoginDto;
-import com.hrms.backend.dtos.request.RegisterDto;
+import com.hrms.backend.dtos.request.AuthDto;
 import com.hrms.backend.entities.User;
 import com.hrms.backend.repos.UserRepo;
 import com.hrms.backend.services.interfaces.IAuthService;
 import com.hrms.backend.utils.ApiResponse;
 import com.hrms.backend.utils.JwtUtil;
 import com.hrms.backend.utils.ResourceNotFoundException;
+import com.hrms.backend.utils.UserInfo;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,32 +37,23 @@ public class AuthService implements IAuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public ResponseEntity<ApiResponse<?>> register(RegisterDto registerDto) {
-        if(userRepo.findByEmail(registerDto.getEmail()) != null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>("user is already registered", null));
-        }
-        registerDto.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-//        userRepo.save(modelMapper.map(registerDto, User.class));
-        User user = new User();
-        user.setEmail(registerDto.getEmail());
-        user.setPassword(registerDto.getPassword());
-        userRepo.save(user);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("user registered successfully", userRepo.findByEmail(registerDto.getEmail())));
+    public ResponseEntity<ApiResponse<?>> register(AuthDto authDto) {
+        userRepo.findByEmail(authDto.getEmail()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        authDto.setPassword(passwordEncoder.encode(authDto.getPassword()));
+        userRepo.save(modelMapper.map(authDto, User.class));
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("user registered successfully", userRepo.findByEmail(authDto.getEmail())));
     }
 
-    public ResponseEntity<ApiResponse<String>> login(LoginDto loginDto) {
-        User user = userRepo.findByEmail(loginDto.getEmail());
-        if(user == null) {
-            throw new ResourceNotFoundException("user not found");
-        }
+    public ResponseEntity<ApiResponse<String>> login(AuthDto authDto) {
+        userRepo.findByEmail(authDto.getEmail()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginDto.getEmail(),
-                        loginDto.getPassword()
+                        authDto.getEmail(),
+                        authDto.getPassword()
                 )
         );
-
-        String token = jwtUtil.generateToken(auth.getName());
+        String token = jwtUtil.generateToken(auth.getName(), ((UserInfo) auth.getPrincipal()).getUserId());
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("login successful", token));
     }
 }

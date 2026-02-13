@@ -23,23 +23,25 @@ public class UserController {
     }
 
     @GetMapping("/")
+//    @PreAuthorize("hasAuthority('VIEW_USER')")
     public ResponseEntity<ApiResponse<List<User>>> getAll() {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getAll());
     }
 
     @GetMapping("/{id}")
+//    @PreAuthorize("hasAuthority('VIEW_USER')")
     public ResponseEntity<ApiResponse<User>> getById(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getById(id));
     }
 
-//    @PreAuthorize("hasRole('ROLE_HR')")
     @PatchMapping("/{id}")
+//    @PreAuthorize("hasAuthority('MANAGE_USER')")
     public ResponseEntity<ApiResponse<User>> updateRole(@PathVariable UUID id, @RequestBody UUID roleId) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.updateRole(id, roleId));
     }
 
-//    @PreAuthorize("hasRole('ROLE_HR')")
     @DeleteMapping("/{id}")
+//    @PreAuthorize("hasAuthority('MANAGE_USER')")
     public ResponseEntity<ApiResponse<String>> delete(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.delete(id));
     }

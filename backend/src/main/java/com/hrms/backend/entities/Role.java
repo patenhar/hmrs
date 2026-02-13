@@ -1,5 +1,7 @@
 package com.hrms.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -12,6 +14,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "Roles")
 @Getter @Setter
+@JsonIgnoreProperties(value = "users")
 public class Role extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -20,10 +23,10 @@ public class Role extends Auditable {
     @NotBlank
     private String roleName;
 
-    @OneToMany(mappedBy = "role")
+    @OneToMany(mappedBy = "role", fetch = FetchType.EAGER)
     private List<User> users;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "role_permissions",
             joinColumns = @JoinColumn(name = "fk_role_id"),

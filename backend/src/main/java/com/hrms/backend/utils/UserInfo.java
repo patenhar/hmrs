@@ -2,8 +2,8 @@ package com.hrms.backend.utils;
 
 import com.hrms.backend.entities.Permission;
 import com.hrms.backend.entities.Role;
-import com.hrms.backend.entities.User;
-import io.micrometer.common.lang.Nullable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,33 +11,35 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
-public class UserInfoUserDetails implements UserDetails {
-    private final User user;
-
-    public UserInfoUserDetails(User user) {
-        this.user = user;
-    }
+@AllArgsConstructor
+public class UserInfo implements UserDetails {
+    @Getter
+    private UUID userId;
+    private String email;
+    private Role role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (user.getRole() == null || user.getRole().getPermissions() == null) {
+        if (role == null || role.getPermissions() == null) {
             return new ArrayList<>();
         }
         List<GrantedAuthority> authorities = new ArrayList<>();
-        for (Permission permission : user.getRole().getPermissions()) {
+        for (Permission permission : role.getPermissions()) {
                 authorities.add(new SimpleGrantedAuthority(permission.getPermissionName().toUpperCase()));
         }
         return authorities;
     }
 
     @Override
-    public @Nullable String getPassword() {
-        return user.getPassword();
+    public String getPassword() {
+        return "";
     }
 
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return email;
     }
+
 }
