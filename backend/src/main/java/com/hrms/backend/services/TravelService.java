@@ -11,9 +11,11 @@ import com.hrms.backend.services.interfaces.ITravelService;
 import com.hrms.backend.utils.ApiResponse;
 import com.hrms.backend.utils.ResourceNotFoundException;
 import org.modelmapper.ModelMapper;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -88,7 +90,7 @@ public class TravelService implements ITravelService {
     @Override
     public ApiResponse<String> deleteTravel(UUID id) {
         Travel travel = findById(id);
-        if (travel.getTravelDate().before(new Date())) {
+        if (travel.getTravelDate().isBefore(LocalDate.now())) {
             return new ApiResponse<>("This operation is now not allowed", null);
         }
         travelRepo.deleteById(id);

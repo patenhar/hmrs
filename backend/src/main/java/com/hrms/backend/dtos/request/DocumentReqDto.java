@@ -9,11 +9,8 @@ import java.util.UUID;
 
 @Getter @Setter
 public class DocumentReqDto {
-
     @NotBlank
     private UUID fkDocumentTypeId;
 
     private MultipartFile file;
-
-    private UUID userTravelId;
 }

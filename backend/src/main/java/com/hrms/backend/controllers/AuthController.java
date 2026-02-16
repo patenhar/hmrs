@@ -1,11 +1,16 @@
 package com.hrms.backend.controllers;
 
-import com.hrms.backend.dtos.request.AuthDto;
+import com.hrms.backend.dtos.request.AuthReqDto;
+import com.hrms.backend.dtos.response.LoginResDto;
 import com.hrms.backend.services.AuthService;
 import com.hrms.backend.utils.ApiResponse;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("api/auth")
 public class AuthController {
@@ -17,12 +22,15 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<?>> register(@RequestBody AuthDto authDto) {
-        return authService.register(authDto);
+    public ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody AuthReqDto authReqDto) {
+        if (!authService.register(authReqDto)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>("User already registered", null));
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("User registered successfully", null));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<String>> login(@RequestBody AuthDto authDto) {
-        return authService.login(authDto);
+    public ResponseEntity<ApiResponse<LoginResDto>> login(@Valid @RequestBody AuthReqDto authReqDto) {
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Login successful", authService.login(authReqDto)));
     }
 }

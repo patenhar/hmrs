@@ -1,10 +1,7 @@
 package com.hrms.backend.dtos.request;
 
-import com.hrms.backend.entities.UserTravel;
 import com.hrms.backend.validations.OnCreate;
 import com.hrms.backend.validations.OnUpdate;
-import jakarta.persistence.*;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -23,7 +20,7 @@ public class ExpenseReqDto {
     @NotBlank(message = "Description is required", groups = {OnCreate.class, OnUpdate.class})
     private String description;
 
-    private DocumentReqDto documentReqDto;
+    private TravelDocumentReqDto travelDocumentReqDto;
 
     @NotBlank(message = "Travel details are required", groups = {OnCreate.class, OnUpdate.class})
     @UUID(message = "Invalid UUID format")

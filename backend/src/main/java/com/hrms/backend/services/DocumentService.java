@@ -1,6 +1,6 @@
 package com.hrms.backend.services;
 
-import com.hrms.backend.dtos.request.DocumentReqDto;
+import com.hrms.backend.dtos.request.TravelDocumentReqDto;
 import com.hrms.backend.entities.Document;
 import com.hrms.backend.repos.DocumentRepo;
 import com.hrms.backend.repos.UserTravelRepo;
@@ -11,7 +11,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.print.Doc;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,13 +27,13 @@ public class DocumentService implements IDocumentService {
         this.documentRepo = documentRepo;
     }
 
-    public ApiResponse<Document> uploadDocument(DocumentReqDto documentReqDto) {
-        MultipartFile file = documentReqDto.getFile();
+    public ApiResponse<Document> uploadDocument(TravelDocumentReqDto travelDocumentReqDto) {
+        MultipartFile file = travelDocumentReqDto.getFile();
         // Upload logic;
         String accessUrl = "";
-        Document document = modelMapper.map(documentReqDto, Document.class);
+        Document document = modelMapper.map(travelDocumentReqDto, Document.class);
         document.setAccessUrl(accessUrl);
-        document.getUserTravels().add(userTravelRepo.findById(documentReqDto.getUserTravelId()).orElseThrow(() -> new ResourceNotFoundException("User travel record not found")));
+        document.getUserTravels().add(userTravelRepo.findById(travelDocumentReqDto.getUserTravelId()).orElseThrow(() -> new ResourceNotFoundException("User travel record not found")));
         Document doc = documentRepo.save(document);
         return new ApiResponse<>("Document uploaded successfully", doc);
     }

@@ -37,7 +37,7 @@ public class AuthFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        if (req.getRequestURI().startsWith("/api/auth")
+        if (req.getRequestURI().startsWith("/api/auth/")
                 || req.getRequestURI().contains("swagger")
                 || req.getRequestURI().contains("/v3/api-docs")
                 || req.getRequestURI().contains("actuator")

@@ -6,16 +6,16 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.UUID;
 
+@Getter @Setter
+public class JobShareReqDto {
 
-@Getter
-@Setter
-public class AuthDto {
     @NotBlank(message = "Email is required", groups = {OnCreate.class, OnUpdate.class})
-    @Email(message = "Invalid email format", groups = {OnCreate.class, OnUpdate.class})
+    @Email(message = "Invalid email format")
     private String email;
 
-    @NotBlank(message = "Password is required", groups = {OnCreate.class, OnUpdate.class})
-//    @Password
-    private String password;
+    @NotBlank(message = "Job is required", groups = {OnCreate.class, OnUpdate.class})
+    @UUID(message = "Invalid UUID format")
+    private java.util.UUID jobId;
 }

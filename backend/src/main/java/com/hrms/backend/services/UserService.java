@@ -6,10 +6,13 @@ import com.hrms.backend.repos.UserRepo;
 import com.hrms.backend.services.interfaces.IUserService;
 import com.hrms.backend.utils.ApiResponse;
 import com.hrms.backend.utils.ResourceNotFoundException;
+import com.hrms.backend.utils.UserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,6 +28,16 @@ public class UserService implements IUserService {
     public UserService(UserRepo userRepo, RoleRepo roleRepo) {
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
+    }
+
+    public User findUserById(UUID id) {
+        return userRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    public User getAuthenticatedUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserInfo userInfo = (UserInfo) auth.getPrincipal();
+        return findUserById(userInfo.getUserId());
     }
 
     private User findById(UUID id) {

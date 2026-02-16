@@ -18,6 +18,7 @@ public class UserInfo implements UserDetails {
     @Getter
     private UUID userId;
     private String email;
+    private String password;
     private Role role;
 
     @Override
@@ -34,7 +35,7 @@ public class UserInfo implements UserDetails {
 
     @Override
     public String getPassword() {
-        return "";
+        return password;
     }
 
     @Override

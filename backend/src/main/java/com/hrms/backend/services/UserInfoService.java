@@ -21,6 +21,6 @@ public class UserInfoService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) {
         User user =  userRepo.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return new UserInfo(user.getPkUserId(), user.getEmail(), user.getRole());
+        return new UserInfo(user.getPkUserId(), user.getEmail(), user.getPassword(), user.getRole());
     }
 }

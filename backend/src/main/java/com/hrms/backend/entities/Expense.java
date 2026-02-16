@@ -2,6 +2,7 @@ package com.hrms.backend.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,7 +16,7 @@ public class Expense {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID pkExpenseId;
 
-    @NotBlank
+    @Positive
     private double amount;
 
     @NotBlank

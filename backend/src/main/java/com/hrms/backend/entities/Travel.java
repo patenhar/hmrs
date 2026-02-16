@@ -24,9 +24,9 @@ public class Travel extends Auditable {
     @NotBlank
     private String description;
     @NotBlank
-    private Date travelDate;
+    private LocalDate travelDate;
     @NotBlank
-    private Date returnDate;
+    private LocalDate returnDate;
     @NotBlank
     private double maxGrantPerDay;
     @Email

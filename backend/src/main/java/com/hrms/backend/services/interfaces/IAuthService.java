@@ -1,10 +1,9 @@
 package com.hrms.backend.services.interfaces;
 
-import com.hrms.backend.dtos.request.AuthDto;
-import com.hrms.backend.utils.ApiResponse;
-import org.springframework.http.ResponseEntity;
+import com.hrms.backend.dtos.request.AuthReqDto;
+import com.hrms.backend.dtos.response.LoginResDto;
 
 public interface IAuthService {
-    ResponseEntity<ApiResponse<?>> register(AuthDto authDto);
-    ResponseEntity<ApiResponse<String>> login(AuthDto authDto);
+    Boolean register(AuthReqDto authReqDto);
+    LoginResDto login(AuthReqDto authReqDto);
 }
