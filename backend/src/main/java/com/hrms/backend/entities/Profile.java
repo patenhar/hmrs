@@ -1,6 +1,7 @@
 package com.hrms.backend.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,28 +18,31 @@ public class Profile extends Auditable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID pkProfileId;
 
+    @NotBlank
     private String name;
 
+    @NotBlank
     private LocalDate birthDate;
 
+    @NotBlank
     private LocalDate joiningDate;
 
     @OneToOne
     @JoinColumn(name = "fk_user_id", referencedColumnName = "pkUserId")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "fk_manager_id")
     private Profile managerProfile;
 
     @OneToMany(mappedBy = "managerProfile")
     private List<Profile> teamMembers;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "fk_deparment_id", referencedColumnName = "pkDepartmentId")
     private Department department;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "fk_profile_status_id", referencedColumnName = "pkProfileStatusId")
     private ProfileStatus profileStatus;
 }

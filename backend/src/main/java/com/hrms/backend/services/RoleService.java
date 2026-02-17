@@ -20,7 +20,6 @@ public class RoleService implements IRoleService {
     private final PermissionRepo permissionRepo;
     private final ModelMapper modelMapper;
 
-
     public RoleService(RoleRepo roleRepo, PermissionRepo permissionRepo, ModelMapper modelMapper) {
         this.roleRepo = roleRepo;
         this.permissionRepo = permissionRepo;

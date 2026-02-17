@@ -5,7 +5,6 @@ import com.hrms.backend.dtos.response.LoginResDto;
 import com.hrms.backend.entities.User;
 import com.hrms.backend.repos.UserRepo;
 import com.hrms.backend.services.interfaces.IAuthService;
-import com.hrms.backend.utils.JwtUtil;
 import com.hrms.backend.utils.ResourceNotFoundException;
 import com.hrms.backend.utils.UserInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -24,15 +23,15 @@ public class AuthService implements IAuthService {
 
     private final UserRepo userRepo;
     private final ModelMapper modelMapper;
-    private final JwtUtil jwtUtil;
+    private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AuthService(UserRepo userRepo, ModelMapper modelMapper, JwtUtil jwtUtil, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepo userRepo, ModelMapper modelMapper, JwtService jwtService, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.modelMapper = modelMapper;
-        this.jwtUtil = jwtUtil;
+        this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.passwordEncoder = passwordEncoder;
     }
@@ -56,7 +55,7 @@ public class AuthService implements IAuthService {
                         authReqDto.getPassword()
                 )
         );
-        String token = jwtUtil.generateToken(auth.getName(), ((UserInfo) auth.getPrincipal()).getUserId());
+        String token = jwtService.generateToken(auth.getName(), ((UserInfo) auth.getPrincipal()).getUserId());
         return new LoginResDto(token);
     }
 }

@@ -1,6 +1,6 @@
 package com.hrms.backend.filters;
 
-import com.hrms.backend.utils.JwtUtil;
+import com.hrms.backend.services.JwtService;
 import com.hrms.backend.utils.UserInfo;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,12 +21,12 @@ import java.io.IOException;
 
 @Component
 public class AuthFilter extends OncePerRequestFilter {
-    private final JwtUtil jwtUtil;
+    private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
     @Autowired
-    public AuthFilter(JwtUtil jwtUtil, @Lazy UserDetailsService userDetailsService) {
-        this.jwtUtil = jwtUtil;
+    public AuthFilter(JwtService jwtService, @Lazy UserDetailsService userDetailsService) {
+        this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
     }
 
@@ -62,10 +62,10 @@ public class AuthFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
-        String email = jwtUtil.getEmail(token);
+        String email = jwtService.getEmail(token);
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserInfo userInfo = (UserInfo) userDetailsService.loadUserByUsername(email);
-            if(jwtUtil.validateToken(token, userInfo.getUsername())){
+            if(jwtService.validateToken(token, userInfo.getUsername())){
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userInfo, null, userInfo.getAuthorities());
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
                 SecurityContextHolder.getContext().setAuthentication(auth);

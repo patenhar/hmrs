@@ -8,7 +8,7 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "referrals")
+@Table(name = "Referrals")
 @Getter
 @Setter
 public class Referral extends AuditableTimestamp {
@@ -38,6 +38,6 @@ public class Referral extends AuditableTimestamp {
     private Document cv;
 
     @ManyToOne
-    @JoinColumn(name = "fk_referral_status_id")
+    @JoinColumn(name = "fk_referral_status_id", referencedColumnName = "pkReferralStatusId")
     private ReferralStatus referralStatus;
 }

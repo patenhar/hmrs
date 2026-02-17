@@ -1,24 +1,19 @@
-package com.hrms.backend.utils;
+package com.hrms.backend.services;
 
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.sql.Timestamp;
 import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
-@Slf4j
 @Component
-public class JwtUtil {
+public class JwtService {
 
     @Value("${jwt_secret}")
     private String secret;

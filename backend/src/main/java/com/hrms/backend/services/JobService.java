@@ -2,28 +2,39 @@ package com.hrms.backend.services;
 
 import com.hrms.backend.dtos.request.JobReqDto;
 import com.hrms.backend.dtos.request.JobShareReqDto;
+import com.hrms.backend.dtos.request.JobStakeHolderReqDto;
 import com.hrms.backend.dtos.request.ReferralReqDto;
 import com.hrms.backend.entities.*;
 import com.hrms.backend.repos.JobRepo;
 import com.hrms.backend.services.interfaces.IJobService;
 import com.hrms.backend.utils.ResourceNotFoundException;
 import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+@Service
 public class JobService implements IJobService {
     private final JobRepo jobRepo;
-    private final ModelMapper mapper;
+    private final ModelMapper modelMapper;
     private final EmailService emailService;
     private final UserService userService;
-    JobService(JobRepo jobRepo, ModelMapper mapper, EmailService emailService, UserService userService) {
+    private final DocumentService documentService;
+    private final JobStakeHolderService jobStakeHolderService;
+
+    public JobService(JobRepo jobRepo, ModelMapper modelMapper, EmailService emailService, UserService userService, DocumentService documentService, JobStakeHolderService jobStakeHolderService) {
         this.jobRepo = jobRepo;
-        this.mapper = mapper;
+        this.modelMapper = modelMapper;
         this.emailService = emailService;
         this.userService = userService;
+        this.documentService = documentService;
+        this.jobStakeHolderService = jobStakeHolderService;
     }
 
-    private Job findJobById(UUID id) {
+    public Job findJobById(UUID id) {
         return jobRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Job not found"));
     }
 
@@ -33,35 +44,31 @@ public class JobService implements IJobService {
     }
 
     @Override
-    public Job addJob(JobReqDto jobReqDto) {
-        return null;
-    }
-
-    @Override
-    public Job shareJob(JobShareReqDto jobShareReqDto){
-        Job job = findJobById(jobShareReqDto.getJobId());
-        User user = userService.getAuthenticatedUser();
-        emailService.sendMailWithAttachment(jobShareReqDto.getEmail(), "Job shared by" + user.getEmail(), job.getTitle() + "\n" + job.getDescription(), job.getJd().getAccessUrl());
-        JobShareRecord jobShareRecord = mapper.map(jobShareReqDto, JobShareRecord.class);
-        jobShareRecord.setUser(user);
-//        jobShareRecordRepo.save(jobShareRecord);
-        return job;
-    }
-
-    public Job referFriendToJob(ReferralReqDto referralReqDto) {
-        Job job = findJobById(referralReqDto.getJobId());
-        User user = userService.getAuthenticatedUser();
-//        Document document = documentService.uploadDocument();
-        Document document = new Document();
-        for (JobStakeHolder jobStakeHolder: job.getJobStakeHolders()){
-            emailService.sendMailWithAttachment(jobStakeHolder.getUser().getEmail(), "Job referral", "Details" , document.getAccessUrl());
+    @Transactional
+    public Job addJob(JobReqDto jobReqDto) throws IOException {
+        Document jd = documentService.uploadDocument(jobReqDto.getDocumentReqDto());
+        Job job = modelMapper.map(jobReqDto, Job.class);
+        job.setJd(jd);
+        Job newJob = jobRepo.save(job);
+        for(JobStakeHolderReqDto jobStakeHolderReqDto: jobReqDto.getJobStakeHolderReqDtos()) {
+            jobStakeHolderService.addJobStakeHolder(newJob, jobStakeHolderReqDto);
         }
-        Referral referral = mapper.map(referralReqDto, Referral.class);
-        referral.setJob(job);
-        referral.setUser(user);
-//        referral.setCvUrl(document.getAccessUrl());
-//        referral.setReferralStatus("");
-//        referralRepo.save(referral);
-        return new Job();
+        return newJob;
     }
+
+    @Transactional
+    public Job updateJob(UUID id, JobReqDto jobReqDto) throws IOException {
+        Job job = findJobById(id);
+        job.setTitle(jobReqDto.getTitle());
+        job.setDescription(jobReqDto.getDescription());
+        Document jd = documentService.uploadDocument(jobReqDto.getDocumentReqDto());
+        job.setJd(jd);
+        job.getJobStakeHolders().clear();
+        for(JobStakeHolderReqDto jobStakeHolderReqDto: jobReqDto.getJobStakeHolderReqDtos()) {
+            jobStakeHolderService.addJobStakeHolder(job, jobStakeHolderReqDto);
+        }
+        return jobRepo.save(job);
+    }
+
+
 }

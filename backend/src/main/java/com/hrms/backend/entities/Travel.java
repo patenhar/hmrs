@@ -19,16 +19,22 @@ public class Travel extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID pkTravelId;
+
     @NotBlank
     private String title;
+
     @NotBlank
     private String description;
+
     @NotBlank
     private LocalDate travelDate;
+
     @NotBlank
     private LocalDate returnDate;
+
     @NotBlank
     private double maxGrantPerDay;
+
     @Email
     private String hrMail;
 

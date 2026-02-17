@@ -19,4 +19,7 @@ public class ProfileStatus extends Auditable {
 
     @NotBlank
     private String profileStatusName;
+
+    @OneToMany(mappedBy = "profileStatus")
+    private List<Profile> profiles;
 }

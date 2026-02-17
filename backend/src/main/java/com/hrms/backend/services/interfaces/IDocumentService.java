@@ -8,6 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface IDocumentService {
-    ApiResponse<Document> uploadDocument(TravelDocumentReqDto travelDocumentReqDto);
+    ApiResponse<Document> uploadTravelDocument(TravelDocumentReqDto travelDocumentReqDto);
     ApiResponse<List<Document>> getUserTravelDocument(UUID id);
 }

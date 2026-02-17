@@ -9,8 +9,7 @@ import java.util.UUID;
 @Getter
 @Setter
 public class ReferralReqDto {
-    @ManyToOne
-    @JoinColumn(name = "fk_job_id")
+
     private UUID jobId;
 
     private String name;
