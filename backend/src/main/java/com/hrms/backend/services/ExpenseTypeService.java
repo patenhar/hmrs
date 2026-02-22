@@ -1,6 +1,6 @@
 package com.hrms.backend.services;
 
-import com.hrms.backend.dtos.request.ExpenseReqDto;
+import com.hrms.backend.dtos.request.ExpenseTypeReqDto;
 import com.hrms.backend.dtos.response.ExpenseTypeResDto;
 import com.hrms.backend.entities.ExpenseType;
 import com.hrms.backend.repos.ExpenseTypeRepo;
@@ -30,23 +30,27 @@ public class ExpenseTypeService {
         return expenseTypeRepo.findAll().stream().map(st -> modelMapper.map(st, ExpenseTypeResDto.class)).toList();
     }
 
+    public List<ExpenseTypeResDto> getExpenseTypesByExpenseTypeNameContainingIgnoreCase(String name) {
+        return expenseTypeRepo.findExpenseTypesByExpenseTypeNameContainingIgnoreCase(name).stream().map(st -> modelMapper.map(st, ExpenseTypeResDto.class)).toList();
+    }
+
     public ExpenseTypeResDto getExpenseTypeById(UUID id) {
         return findExpenseTypeById(id);
     }
 
-    public ExpenseTypeResDto addExpenseType(ExpenseReqDto expenseReqDto) {
-        ExpenseType expenseType =  expenseTypeRepo.save(modelMapper.map(expenseReqDto, ExpenseType.class));
+    public ExpenseTypeResDto addExpenseType(ExpenseTypeReqDto expenseTypeReqDto) {
+        ExpenseType expenseType =  expenseTypeRepo.save(modelMapper.map(expenseTypeReqDto, ExpenseType.class));
         return modelMapper.map(expenseType, ExpenseTypeResDto.class);
     }
 
-    public ExpenseTypeResDto updateExpenseType(UUID id, ExpenseReqDto expenseReqDto) {
+    public ExpenseTypeResDto updateExpenseType(UUID id, ExpenseTypeReqDto expenseTypeReqDto) {
         ExpenseTypeResDto expenseType = findExpenseTypeById(id);
-        modelMapper.map(expenseReqDto, expenseType);
-        ExpenseType updatedExpenseType =  expenseTypeRepo.save(modelMapper.map(expenseReqDto, ExpenseType.class));
+        modelMapper.map(expenseTypeReqDto, expenseType);
+        ExpenseType updatedExpenseType =  expenseTypeRepo.save(modelMapper.map(expenseTypeReqDto, ExpenseType.class));
         return modelMapper.map(updatedExpenseType, ExpenseTypeResDto.class);
     }
 
-    public Boolean deleteExpenseType(UUID id) {
+    public boolean deleteExpenseType(UUID id) {
         findExpenseTypeById(id);
         expenseTypeRepo.deleteById(id);
         return true;

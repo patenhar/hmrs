@@ -1,4 +1,5 @@
 package com.hrms.backend.utils;
+import jakarta.mail.MessagingException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -8,6 +9,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.security.access.AccessDeniedException;
+
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -52,6 +55,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<String>> handleAccessDenied(Exception ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>("Access is denied as you do not have enough permissions to perform this action", null));
+    }
+
+    @ExceptionHandler(MessagingException.class)
+    public ResponseEntity<ApiResponse<String>> handleMessaging(Exception ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>("Email not sent due to some reasons", null));
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<ApiResponse<String>> handleIO(Exception ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>("IO exception raised", null));
     }
 
     @ExceptionHandler(Exception.class)

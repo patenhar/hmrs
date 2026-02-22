@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrgChartResDto {
-    private Profile profile;
-    private List<Profile> managerList;
+    private ProfileResDto profileResDto;
+    private List<ProfileResDto> managers;
+    private List<ProfileResDto> directReports;
 }

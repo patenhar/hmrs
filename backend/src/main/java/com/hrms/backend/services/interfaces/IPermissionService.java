@@ -1,19 +1,20 @@
 package com.hrms.backend.services.interfaces;
 
-import com.hrms.backend.dtos.request.PermissionDto;
+import com.hrms.backend.dtos.request.PermissionReqDto;
+import com.hrms.backend.dtos.response.PermissionResDto;
 import com.hrms.backend.entities.Permission;
 import com.hrms.backend.utils.ApiResponse;
 import java.util.List;
 import java.util.UUID;
 
 public interface IPermissionService {
-    ApiResponse<List<Permission>> getAll();
+    List<PermissionResDto> getAllPermissions();
 
-    ApiResponse<Permission> getById(UUID id);
+    PermissionResDto getPermissionById(UUID id);
 
-    ApiResponse<Permission> add(PermissionDto permissionDto);
+    PermissionResDto addPermission(PermissionReqDto permissionReqDto);
 
-    ApiResponse<Permission> updatePermission(UUID id, PermissionDto permissionDto);
+    PermissionResDto updatePermission(UUID id, PermissionReqDto permissionReqDto);
 
-    ApiResponse<String> delete(UUID id);
+    boolean deletePermission(UUID id);
 }

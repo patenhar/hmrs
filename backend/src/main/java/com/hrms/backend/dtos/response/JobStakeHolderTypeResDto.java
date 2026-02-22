@@ -7,6 +7,6 @@ import java.util.UUID;
 
 @Getter @Setter
 public class JobStakeHolderTypeResDto {
-    private UUID jobStakeHolderTypeId;
+    private UUID pkJobStakeHolderTypeId;
     private String jobStakeHolderTypeName;
 }

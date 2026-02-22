@@ -1,12 +1,9 @@
 package com.hrms.backend.services;
 
-import com.hrms.backend.dtos.request.RoleDto;
-import com.hrms.backend.entities.Permission;
+import com.hrms.backend.dtos.request.RoleReqDto;
+import com.hrms.backend.dtos.response.RoleResDto;
 import com.hrms.backend.entities.Role;
-import com.hrms.backend.repos.PermissionRepo;
 import com.hrms.backend.repos.RoleRepo;
-import com.hrms.backend.services.interfaces.IRoleService;
-import com.hrms.backend.utils.ApiResponse;
 import com.hrms.backend.utils.ResourceNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -15,63 +12,43 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class RoleService implements IRoleService {
+public class RoleService {
     private final RoleRepo roleRepo;
-    private final PermissionRepo permissionRepo;
     private final ModelMapper modelMapper;
 
-    public RoleService(RoleRepo roleRepo, PermissionRepo permissionRepo, ModelMapper modelMapper) {
+    public RoleService(RoleRepo roleRepo, ModelMapper modelMapper) {
         this.roleRepo = roleRepo;
-        this.permissionRepo = permissionRepo;
         this.modelMapper = modelMapper;
     }
 
-    private Role findById(UUID id) {
-        return roleRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Invalid role id"));
+    public RoleResDto findRoleById(UUID id) {
+        Role role = roleRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Expense type is not found"));
+        return modelMapper.map(role, RoleResDto.class);
     }
 
-    @Override
-    public ApiResponse<List<Role>> getAll() {
-        return new ApiResponse<>("all roles fetched successfully", roleRepo.findAll());
+    public List<RoleResDto> getAllRoles() {
+        return roleRepo.findAll().stream().map(st -> modelMapper.map(st, RoleResDto.class)).toList();
     }
 
-    @Override
-    public ApiResponse<Role> getById(UUID id) {
-        return new ApiResponse<>("role fetched successfully", findById(id));
+    public RoleResDto getRoleById(UUID id) {
+        return findRoleById(id);
     }
 
-    @Override
-    public ApiResponse<Role> add(RoleDto roleDto) {
-        List<Permission> permissions = roleDto.getPermissionIds()
-                                                .stream()
-                                                .map(i -> permissionRepo.findById(i).orElseThrow(() -> new ResourceNotFoundException("invalid permission id")))
-                                                .toList();
-        Role role = new Role();
-        role.setRoleName(roleDto.getRoleName());
-        role.setPermissions(permissions);
-        roleRepo.save(role);
-        return new ApiResponse<>("role added successfully", role);
+    public RoleResDto addRole(RoleReqDto roleReqDto) {
+        Role role =  roleRepo.save(modelMapper.map(roleReqDto, Role.class));
+        return modelMapper.map(role, RoleResDto.class);
     }
 
-    @Override
-    public ApiResponse<Role> updateRole(UUID id, RoleDto roleDto) {
-        Role updatedRole = findById(id);
-        List<Permission> permissions = roleDto.getPermissionIds()
-                .stream()
-                .map(i -> permissionRepo.findById(i).orElseThrow(() -> new ResourceNotFoundException("invalid permission id")))
-                .toList();
-        updatedRole.setRoleName(roleDto.getRoleName());
-        updatedRole.setPermissions(permissions);
-        Role role = findById(id);
-        modelMapper.map(updatedRole, role);
-        roleRepo.save(role);
-        return new ApiResponse<>("role updated successfully", role);
+    public RoleResDto updateRole(UUID id, RoleReqDto roleReqDto) {
+        RoleResDto role = findRoleById(id);
+        modelMapper.map(roleReqDto, role);
+        Role updatedRole =  roleRepo.save(modelMapper.map(roleReqDto, Role.class));
+        return modelMapper.map(updatedRole, RoleResDto.class);
     }
 
-    @Override
-    public ApiResponse<String> delete(UUID id) {
-        findById(id);
+    public boolean deleteRole(UUID id) {
+        findRoleById(id);
         roleRepo.deleteById(id);
-        return new ApiResponse<>("role deleted successfully", null);
+        return true;
     }
 }

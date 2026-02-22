@@ -1,18 +1,18 @@
 package com.hrms.backend.services;
 
-import com.hrms.backend.dtos.request.PermissionDto;
+import com.hrms.backend.dtos.request.PermissionReqDto;
+import com.hrms.backend.dtos.response.PermissionResDto;
 import com.hrms.backend.entities.Permission;
 import com.hrms.backend.repos.PermissionRepo;
-import com.hrms.backend.services.interfaces.IPermissionService;
-import com.hrms.backend.utils.ApiResponse;
 import com.hrms.backend.utils.ResourceNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.UUID;
 
 @Service
-public class PermissionService implements IPermissionService {
+public class PermissionService {
     private final PermissionRepo permissionRepo;
     private final ModelMapper modelMapper;
 
@@ -21,38 +21,34 @@ public class PermissionService implements IPermissionService {
         this.modelMapper = modelMapper;
     }
 
-    private Permission findById(UUID id) {
-        return permissionRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Invalid permission id"));
+    public PermissionResDto findPermissionById(UUID id) {
+        Permission permission = permissionRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Expense type is not found"));
+        return modelMapper.map(permission, PermissionResDto.class);
     }
 
-    @Override
-    public ApiResponse<List<Permission>> getAll() {
-        return new ApiResponse<>("Fetched all permissions", permissionRepo.findAll());
+    public List<PermissionResDto> getAllPermissions() {
+        return permissionRepo.findAll().stream().map(st -> modelMapper.map(st, PermissionResDto.class)).toList();
     }
 
-    @Override
-    public ApiResponse<Permission> getById(UUID id) {
-        return new ApiResponse<>("Fetched permission", findById(id));
+    public PermissionResDto getPermissionById(UUID id) {
+        return findPermissionById(id);
     }
 
-    @Override
-    public ApiResponse<Permission> add(PermissionDto permissionDto) {
-        Permission permission = permissionRepo.save(modelMapper.map(permissionDto, Permission.class));
-        return new ApiResponse<>("Permission added successfully", permission);
+    public PermissionResDto addPermission(PermissionReqDto permissionReqDto) {
+        Permission permission =  permissionRepo.save(modelMapper.map(permissionReqDto, Permission.class));
+        return modelMapper.map(permission, PermissionResDto.class);
     }
 
-    @Override
-    public ApiResponse<Permission> updatePermission(UUID id, PermissionDto permissionDto) {
-        Permission permission = findById(id);
-        modelMapper.map(permissionDto, permission);
-        permissionRepo.save(permission);
-        return new ApiResponse<>("Successfully updated the permission", findById(id));
+    public PermissionResDto updatePermission(UUID id, PermissionReqDto permissionReqDto) {
+        PermissionResDto permission = findPermissionById(id);
+        modelMapper.map(permissionReqDto, permission);
+        Permission updatedPermission =  permissionRepo.save(modelMapper.map(permissionReqDto, Permission.class));
+        return modelMapper.map(updatedPermission, PermissionResDto.class);
     }
 
-    @Override
-    public ApiResponse<String> delete(UUID id) {
-        findById(id);
+    public boolean deletePermission(UUID id) {
+        findPermissionById(id);
         permissionRepo.deleteById(id);
-        return new ApiResponse<>("Permission deleted successfully", null);
+        return true;
     }
 }

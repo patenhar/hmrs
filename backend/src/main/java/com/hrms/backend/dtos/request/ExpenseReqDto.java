@@ -2,31 +2,31 @@ package com.hrms.backend.dtos.request;
 
 import com.hrms.backend.validations.OnCreate;
 import com.hrms.backend.validations.OnUpdate;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.hibernate.validator.constraints.UUID;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class ExpenseReqDto {
     @NotNull(message = "Expense amount is required", groups = {OnCreate.class, OnUpdate.class})
     @Min(value = 0, message = "Amount cannot be less than zero", groups = {OnCreate.class, OnUpdate.class})
-    private double amount;
+    private Double amount;
 
     @NotBlank(message = "Description is required", groups = {OnCreate.class, OnUpdate.class})
     private String description;
 
-    private TravelDocumentReqDto travelDocumentReqDto;
+    @Valid
+    private DocumentReqDto documentReqDto;
 
-    @NotBlank(message = "Travel details are required", groups = {OnCreate.class, OnUpdate.class})
-    @UUID(message = "Invalid UUID format")
-    private java.util.UUID userTravelId;
+    @NotNull(message = "Travel details are required", groups = {OnCreate.class, OnUpdate.class})
+    private UUID userTravelId;
 
-    @NotBlank(message = "Expense type is required", groups = {OnCreate.class, OnUpdate.class})
-    @UUID(message = "Invalid UUID format")
-    private java.util.UUID expenseTypeId;
+    @NotNull(message = "Expense type is required", groups = {OnCreate.class, OnUpdate.class})
+    private UUID expenseTypeId;
 }

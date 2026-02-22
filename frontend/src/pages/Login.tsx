@@ -22,6 +22,7 @@ import ButtonLink from "@/components/Custom/ButtonLink";
 import { ButtonSpinner } from "@/components/Custom/ButtonSpinner";
 import { useLogin } from "@/api/queries/useAuth";
 import { useNavigate } from "react-router-dom";
+import FormField from "@/components/Custom/FormField";
 
 const formSchema = z.object({
   email: z.email("Invalid email address"),
@@ -43,7 +44,7 @@ export default function Login() {
   function onSubmit(data: z.infer<typeof formSchema>) {
     login(data);
     if (isSuccess) {
-      navigate("/");
+      navigate("/travels");
     }
   }
 
@@ -61,43 +62,19 @@ export default function Login() {
       <CardContent>
         <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
-            <Controller
+            <FormField
+              form={form}
               name="email"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input
-                    {...field}
-                    id="email"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="something@roimaint.com"
-                    autoComplete="off"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
+              label="Email"
+              type="text"
+              placeholder="something@roimaint.com"
             />
-            <Controller
+            <FormField
+              form={form}
               name="password"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <Input
-                    {...field}
-                    id="password"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="enter your password"
-                    autoComplete="off"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
+              label="Password"
+              type="password"
+              placeholder="Password"
             />
           </FieldGroup>
         </form>

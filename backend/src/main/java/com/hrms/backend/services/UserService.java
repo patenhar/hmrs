@@ -34,6 +34,12 @@ public class UserService implements IUserService {
         this.modelMapper = modelMapper;
     }
 
+    public UserResDto getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserInfo userInfo = (UserInfo) auth.getPrincipal();
+        return findUserById(userInfo.getUserId());
+    }
+
     public UserResDto findUserById(UUID id) {
         User user = userRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return modelMapper.map(user, UserResDto.class);
@@ -54,10 +60,15 @@ public class UserService implements IUserService {
         return new ApiResponse<>("Users fetched successfully", userRepo.findAll());
     }
 
+    public List<UserResDto> getAllUsersByEmail(String email) {
+        return userRepo.findAllByEmailContainingIgnoreCase(email).stream().map(u -> modelMapper.map(u, UserResDto.class)).toList();
+    }
+
     @Override
     public ApiResponse<User> getById(UUID id) {
         return new ApiResponse<>("User fetched successfully", findById(id));
     }
+
 
     @Override
     public ApiResponse<User> updateRole(UUID id, UUID roleId) {

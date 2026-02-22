@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @NoArgsConstructor @AllArgsConstructor @Getter @Setter
-public class PermissionDto {
+public class PermissionReqDto {
     @NotBlank(message = "Permission name is required", groups = {OnCreate.class, OnUpdate.class})
     private String permissionName;
 }

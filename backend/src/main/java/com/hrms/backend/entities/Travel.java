@@ -3,6 +3,7 @@ package com.hrms.backend.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,19 +27,19 @@ public class Travel extends Auditable {
     @NotBlank
     private String description;
 
-    @NotBlank
+    @NotNull
     private LocalDate travelDate;
 
-    @NotBlank
+    @NotNull
     private LocalDate returnDate;
 
-    @NotBlank
+    @NotNull
     private double maxGrantPerDay;
 
     @Email
     private String hrMail;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.DETACH)
     @JoinTable(
             name = "travel_destinations",
             joinColumns = @JoinColumn(name = "fk_travel_id"),

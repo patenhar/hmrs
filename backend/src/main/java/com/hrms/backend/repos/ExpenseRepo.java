@@ -25,11 +25,9 @@ public interface ExpenseRepo extends JpaRepository<Expense, UUID>{
             "WHERE ut.fk_travel_id = :travelId", nativeQuery = true)
     List<Expense> findExpensesByTravelId(@Param("travelId") UUID travelId);
 
-    @Query(value = "SELECT * " +
-            "FROM expenses e " +
-            "INNER JOIN user_travels ut " +
-            "ON e.fk_user_travel_id = ut.pk_user_travel_id" +
-            "WHERE ut.pk_user_travel_id = :userTravelId", nativeQuery = true)
+    @Query(value = """
+SELECT * FROM expenses e INNER JOIN user_travels ut ON e.fk_user_travel_id = ut.pk_user_travel_id WHERE ut.pk_user_travel_id = :userTravelId
+""", nativeQuery = true)
     List<Expense> findExpensesByUserTravelId(@Param("userTravelId") UUID userTravelId);
 
 }

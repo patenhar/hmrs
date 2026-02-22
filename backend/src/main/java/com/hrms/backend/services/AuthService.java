@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class AuthService implements IAuthService {
+public class AuthService {
 
     private final UserRepo userRepo;
     private final ModelMapper modelMapper;
@@ -36,8 +36,7 @@ public class AuthService implements IAuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Override
-    public Boolean register(AuthReqDto authReqDto) {
+    public boolean register(AuthReqDto authReqDto) {
         if (userRepo.findByEmail(authReqDto.getEmail()).isPresent()) {
             return false;
         }
@@ -46,7 +45,6 @@ public class AuthService implements IAuthService {
         return true;
     }
 
-    @Override
     public LoginResDto login(AuthReqDto authReqDto) {
         userRepo.findByEmail(authReqDto.getEmail()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         Authentication auth = authenticationManager.authenticate(

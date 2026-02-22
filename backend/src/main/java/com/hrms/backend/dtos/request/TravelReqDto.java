@@ -35,13 +35,9 @@ public class TravelReqDto {
     @Email(message = "Invalid email format", groups = {OnCreate.class, OnUpdate.class})
     private String hrMail;
 
-//    @Valid
-//    private List<@org.hibernate.validator.constraints.UUID(message = "Invalid UUID format") UUID> destinationIds = new ArrayList<>();
-
     @NotEmpty(message = "At least one destination is required", groups = {OnCreate.class, OnUpdate.class})
     private List<@Valid AddressReqDto> destinations = new ArrayList<>();
 
     @NotEmpty(message = "At least one user is required", groups = {OnCreate.class, OnUpdate.class})
-    @Valid
-    private List<@org.hibernate.validator.constraints.UUID(message = "Invalid UUID format") UUID> userIds = new ArrayList<>();
+    private List<@NotNull(message = "UserId cannot be null") UUID> userIds = new ArrayList<>();
 }

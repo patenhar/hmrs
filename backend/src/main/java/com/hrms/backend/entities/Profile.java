@@ -2,10 +2,12 @@ package com.hrms.backend.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,10 +23,10 @@ public class Profile extends Auditable {
     @NotBlank
     private String name;
 
-    @NotBlank
+    @NotNull
     private LocalDate birthDate;
 
-    @NotBlank
+    @NotNull
     private LocalDate joiningDate;
 
     @OneToOne
@@ -45,4 +47,12 @@ public class Profile extends Auditable {
     @ManyToOne
     @JoinColumn(name = "fk_profile_status_id", referencedColumnName = "pkProfileStatusId")
     private ProfileStatus profileStatus;
+
+    @ManyToMany
+    @JoinTable(
+            name = "profile_games",
+            joinColumns = @JoinColumn(name = "fk_profile_id", referencedColumnName = "pkProfileId"),
+            inverseJoinColumns = @JoinColumn(name = "fk_game_id", referencedColumnName = "pkGameId")
+    )
+    private List<Game> games = new ArrayList<>();
 }

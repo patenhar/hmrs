@@ -4,6 +4,7 @@ import com.hrms.backend.dtos.request.JobReqDto;
 import com.hrms.backend.dtos.request.JobShareReqDto;
 import com.hrms.backend.dtos.request.JobStakeHolderReqDto;
 import com.hrms.backend.dtos.request.ReferralReqDto;
+import com.hrms.backend.dtos.response.JobResDto;
 import com.hrms.backend.entities.*;
 import com.hrms.backend.repos.JobRepo;
 import com.hrms.backend.services.interfaces.IJobService;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class JobService implements IJobService {
+public class JobService {
     private final JobRepo jobRepo;
     private final ModelMapper modelMapper;
     private final EmailService emailService;
@@ -38,12 +39,14 @@ public class JobService implements IJobService {
         return jobRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Job not found"));
     }
 
-    @Override
-    public List<Job> getAllJobs() {
-        return jobRepo.findAll();
+    public List<JobResDto> getAllJobs() {
+        return jobRepo.findAll().stream().map(job -> modelMapper.map(job, JobResDto.class)).toList();
     }
 
-    @Override
+    public JobResDto getJobById(UUID id) {
+        return modelMapper.map( findJobById(id), JobResDto.class);
+    }
+
     @Transactional
     public Job addJob(JobReqDto jobReqDto) throws IOException {
         Document jd = documentService.uploadDocument(jobReqDto.getDocumentReqDto());
@@ -69,6 +72,4 @@ public class JobService implements IJobService {
         }
         return jobRepo.save(job);
     }
-
-
 }

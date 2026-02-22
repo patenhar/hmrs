@@ -17,7 +17,7 @@ public class Expense {
     private UUID pkExpenseId;
 
     @Positive
-    private double amount;
+    private Double amount;
 
     @NotBlank
     private String description;

@@ -12,10 +12,5 @@ import java.util.UUID;
 
 @Repository
 public interface DocumentRepo extends JpaRepository<Document, UUID>{
-    @Query(value = "SELECT * " +
-            "FROM documents d " +
-            "INNER JOIN travel_documents td " +
-            "ON d.pk_document_id = td.fk_document_id " +
-            "WHERE td.pk_user_travel_id = :userTravelId", nativeQuery = true)
-    List<Document> findDocumentsByUserTravel(@Param("userTravelId") UUID userTravelId);
+
 }

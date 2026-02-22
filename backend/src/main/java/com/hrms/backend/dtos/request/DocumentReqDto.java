@@ -1,6 +1,7 @@
 package com.hrms.backend.dtos.request;
 
-import jakarta.validation.constraints.NotBlank;
+import com.hrms.backend.validations.OnCreate;
+import com.hrms.backend.validations.OnUpdate;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,10 +11,9 @@ import java.util.UUID;
 
 @Getter @Setter
 public class DocumentReqDto {
-
-    @NotBlank
+    @NotNull(message = "Document type is required", groups = {OnCreate.class, OnUpdate.class})
     private UUID fkDocumentTypeId;
 
-    @NotNull
+    @NotNull(message = "File is required", groups = {OnCreate.class, OnUpdate.class})
     private MultipartFile file;
 }

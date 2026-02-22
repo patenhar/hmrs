@@ -5,8 +5,11 @@ import com.hrms.backend.entities.Job;
 import com.hrms.backend.entities.JobShareRecord;
 import com.hrms.backend.entities.User;
 import com.hrms.backend.repos.JobShareRecordRepo;
+import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 public class JobShareRecordService {
@@ -24,14 +27,13 @@ public class JobShareRecordService {
         this.jobShareRecordRepo = jobShareRecordRepo;
     }
 
-    public Job shareJob(JobShareReqDto jobShareReqDto){
+    public void shareJob(JobShareReqDto jobShareReqDto) throws MessagingException, IOException {
         Job job = jobService.findJobById(jobShareReqDto.getJobId());
         User user = userService.getAuthenticatedUser();
-        emailService.sendMailWithAttachment(jobShareReqDto.getEmail(), "Job shared by" + user.getEmail(), job.getTitle() + "\n" + job.getDescription(), job.getJd().getAccessUrl());
+        emailService.sendMailWithAttachment(jobShareReqDto.getEmail(), "Job shared by " + user.getEmail(), job.getTitle() + "\n" + job.getDescription(), job.getJd().getAccessUrl());
         JobShareRecord jobShareRecord = modelMapper.map(jobShareReqDto, JobShareRecord.class);
         jobShareRecord.setUser(user);
         jobShareRecord.setJob(job);
         jobShareRecordRepo.save(jobShareRecord);
-        return job;
     }
 }

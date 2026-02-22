@@ -4,10 +4,12 @@ import com.hrms.backend.dtos.request.ReferralReqDto;
 import com.hrms.backend.entities.*;
 import com.hrms.backend.repos.ReferralRepo;
 import com.hrms.backend.repos.ReferralStatusRepo;
+import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Service
 public class ReferralService {
@@ -30,8 +32,8 @@ public class ReferralService {
         this.referralStatusService = referralStatusService;
     }
 
-    public Job referFriendToJob(ReferralReqDto referralReqDto) throws IOException {
-        Job job = jobService.findJobById(referralReqDto.getJobId());
+    public void referJob(UUID jobId, ReferralReqDto referralReqDto) throws IOException, MessagingException {
+        Job job = jobService.findJobById(jobId);
         User user = userService.getAuthenticatedUser();
         Document document = documentService.uploadDocument(referralReqDto.getDocumentReqDto());
         for (JobStakeHolder jobStakeHolder: job.getJobStakeHolders()){
@@ -40,8 +42,7 @@ public class ReferralService {
         Referral referral = modelMapper.map(referralReqDto, Referral.class);
         referral.setJob(job);
         referral.setUser(user);
-//        referral.setReferralStatus(referralStatusService.findReferralStatusById(""));
+        referral.setReferralStatus(modelMapper.map(referralStatusService.findReferralStatusById(UUID.fromString("f6384659-c2f9-4120-9b28-7a1d89196c8a")), ReferralStatus.class));
         referralRepo.save(referral);
-        return job;
     }
 }

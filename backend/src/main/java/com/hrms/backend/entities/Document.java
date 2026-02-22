@@ -20,14 +20,6 @@ public class Document extends Auditable {
     @NotBlank
     private String accessUrl;
 
-    @ManyToMany
-    @JoinTable(
-            name = "travel_documents",
-            joinColumns = @JoinColumn(name = "fk_user_travel_id"),
-            inverseJoinColumns = @JoinColumn(name = "fk_document_id")
-    )
-    private List<UserTravel> userTravels = new ArrayList<>();
-
     @ManyToOne
     @JoinColumn(name = "fk_document_type_id", referencedColumnName = "pkDocumentTypeId")
     private DocumentType documentType;

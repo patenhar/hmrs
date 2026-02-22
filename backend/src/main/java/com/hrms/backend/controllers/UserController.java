@@ -1,5 +1,6 @@
 package com.hrms.backend.controllers;
 
+import com.hrms.backend.dtos.response.UserResDto;
 import com.hrms.backend.entities.User;
 import com.hrms.backend.services.UserService;
 import com.hrms.backend.utils.ApiResponse;
@@ -22,10 +23,23 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("/me")
+//    @PreAuthorize("hasAuthority('VIEW_USER')")
+    public ResponseEntity<ApiResponse<UserResDto>> getCurrentUser() {
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Current user fetched", userService.getCurrentUser()));
+    }
+
+
     @GetMapping("/")
 //    @PreAuthorize("hasAuthority('VIEW_USER')")
     public ResponseEntity<ApiResponse<List<User>>> getAll() {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getAll());
+    }
+
+    @GetMapping("/search")
+//    @PreAuthorize("hasAuthority('VIEW_USER')")
+    public ResponseEntity<ApiResponse<List<UserResDto>>> getAllUsersByEmail(@RequestParam String email) {
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Users fetched by email", userService.getAllUsersByEmail(email)));
     }
 
     @GetMapping("/{id}")

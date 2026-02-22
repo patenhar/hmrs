@@ -26,6 +26,11 @@ public class DocumentTypeService {
         return modelMapper.map(documentType, DocumentTypeResDto.class);
     }
 
+    public List<DocumentTypeResDto> findDocumentTypeByDocumentTypeName(String name) {
+        return documentTypeRepo.findDocumentTypeByDocumentTypeNameContainingIgnoreCase(name).stream().map((dt -> modelMapper.map(dt, DocumentTypeResDto.class))).toList();
+
+    }
+
     public List<DocumentTypeResDto> getAllDocumentTypes() {
         return documentTypeRepo.findAll().stream().map(st -> modelMapper.map(st, DocumentTypeResDto.class)).toList();
     }
@@ -46,7 +51,7 @@ public class DocumentTypeService {
         return modelMapper.map(updatedDocumentType, DocumentTypeResDto.class);
     }
 
-    public Boolean deleteDocumentType(UUID id) {
+    public boolean deleteDocumentType(UUID id) {
         findDocumentTypeById(id);
         documentTypeRepo.deleteById(id);
         return true;

@@ -2,16 +2,17 @@ package com.hrms.backend.services;
 
 import com.hrms.backend.dtos.request.AddressReqDto;
 import com.hrms.backend.dtos.request.TravelReqDto;
-import com.hrms.backend.entities.Address;
-import com.hrms.backend.entities.City;
-import com.hrms.backend.entities.Travel;
-import com.hrms.backend.entities.UserTravel;
+import com.hrms.backend.dtos.request.UserTravelReqDto;
+import com.hrms.backend.dtos.response.TravelResDto;
+import com.hrms.backend.dtos.response.UserResDto;
+import com.hrms.backend.entities.*;
 import com.hrms.backend.repos.*;
 import com.hrms.backend.services.interfaces.ITravelService;
 import com.hrms.backend.utils.ApiResponse;
 import com.hrms.backend.utils.ResourceNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.cglib.core.Local;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,78 +23,80 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class TravelService implements ITravelService {
+public class TravelService {
     private final TravelRepo travelRepo;
-    private final UserTravelRepo userTravelRepo;
-    private final AddressRepo addressRepo;
     private final ModelMapper modelMapper;
-    private final CityRepo cityRepo;
-    private final UserRepo userRepo;
+    private final AddressService addressService;
+    private final UserTravelService userTravelService;
+    private final EmailService emailService;
+    private final UserService userService;
+    private final DateService dateService;
 
-    public TravelService(TravelRepo travelRepo, UserTravelRepo userTravelRepo, AddressRepo addressRepo, ModelMapper modelMapper, CityRepo cityRepo, UserRepo userRepo) {
+    public TravelService(TravelRepo travelRepo, ModelMapper modelMapper, AddressService addressService, UserTravelService userTravelService, EmailService emailService, UserService userService, DateService dateService) {
         this.travelRepo = travelRepo;
-        this.userTravelRepo = userTravelRepo;
-        this.addressRepo = addressRepo;
         this.modelMapper = modelMapper;
-        this.cityRepo = cityRepo;
-        this.userRepo = userRepo;
+        this.addressService = addressService;
+        this.userTravelService = userTravelService;
+        this.emailService = emailService;
+        this.userService = userService;
+        this.dateService = dateService;
     }
 
-    private Travel findById(UUID id) {
-        return travelRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Travel not found"));
+    public TravelResDto findTravelById(UUID id) {
+        Travel travel = travelRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Travel not found"));
+        return modelMapper.map(travel, TravelResDto.class);
     }
 
-    @Override
-    public ApiResponse<List<Travel>> getAllTravels() {
-        return new ApiResponse<>("All travels fetched successfully", travelRepo.findAll());
+    public List<TravelResDto> getAllTravels() {
+        return travelRepo.findAll().stream().map(t -> modelMapper.map(t, TravelResDto.class)).toList();
     }
 
-    @Override
-    public ApiResponse<Travel> getTravelById(UUID id) {
-        return new ApiResponse<>("Travel fetched successfully", findById(id));
+    public TravelResDto getTravelById(UUID id) {
+        return findTravelById(id);
     }
 
-    @Override
-    public ApiResponse<List<Travel>> getTravelByUserId(UUID id) {
-        return new ApiResponse<>("Travels for current user fetched successfully", userTravelRepo.findTravelByUserId(id).stream().map(UserTravel::getTravel).toList());
+    public List<TravelResDto> getTravelByUserId(UUID id) {
+        return  null;
     }
 
-    @Override
     @Transactional
-    public ApiResponse<Travel> addTravel(TravelReqDto travelReqDto) {
-        Travel travel = modelMapper.map(travelReqDto, Travel.class);
+    public boolean addTravel(TravelReqDto travelReqDto) {
+        Travel travel = new Travel();
+        travel.setTravelDate(dateService.convertToLocalDate(travelReqDto.getTravelDate()));
+        travel.setReturnDate(dateService.convertToLocalDate(travelReqDto.getReturnDate()));
+        travel.setTitle(travelReqDto.getTitle());
+        travel.setDescription(travelReqDto.getDescription());
+        travel.setHrMail(travelReqDto.getHrMail());
+        travel.setMaxGrantPerDay(travelReqDto.getMaxGrantPerDay());
+
         List<AddressReqDto> addressReqDtos = travelReqDto.getDestinations();
         List<Address> addresses = new ArrayList<>();
         if (addressReqDtos != null){
             for(AddressReqDto addressReqDto: addressReqDtos){
-                City city = cityRepo.findById(addressReqDto.getCityId()).orElseThrow(() -> new ResourceNotFoundException("city not found"));
-                Address address = modelMapper.map(addressReqDto, Address.class);
-                address.setCity(city);
-                addresses.add(addressRepo.save(address));
+                addresses.add(modelMapper.map((addressService.addAddress(addressReqDto)), Address.class));
             }
         }
         travel.getDestinations().addAll(addresses);
         Travel t = travelRepo.save(travel);
         for(UUID userId: travelReqDto.getUserIds()){
-            UserTravel userTravel = new UserTravel();
-            userTravel.setTravel(t);
-            userTravel.setUser(userRepo.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found")));
+            userTravelService.saveUserTravel(userId, t);
         }
-        return new ApiResponse<>("Travel planned successfully", t);
+//        for(UUID userId: travelReqDto.getUserIds()){
+//            emailService.sendMail(userService.findUserById(userId).getEmail(), "About new travel plan", "Congratulations, you are flying off!" + t);
+//        }
+        return true;
     }
 
-    @Override
-    public ApiResponse<Travel> updateTravel(UUID id, TravelReqDto roleDto) {
+    public TravelResDto updateTravel(UUID id, TravelReqDto roleDto) {
         return null;
     }
 
-    @Override
-    public ApiResponse<String> deleteTravel(UUID id) {
-        Travel travel = findById(id);
-        if (travel.getTravelDate().isBefore(LocalDate.now())) {
-            return new ApiResponse<>("This operation is now not allowed", null);
+    public boolean deleteTravel(UUID id) {
+        TravelResDto travelResDto = findTravelById(id);
+        if (travelResDto.getTravelDate().isBefore(LocalDate.now())) {
+            return false;
         }
         travelRepo.deleteById(id);
-        return new ApiResponse<>("Travel deleted successfully", null);
+        return true;
     }
 }

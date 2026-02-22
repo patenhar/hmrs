@@ -19,31 +19,18 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class DocumentService implements IDocumentService {
+public class DocumentService {
 
     private final ModelMapper modelMapper;
-    private final UserTravelRepo userTravelRepo;
     private final DocumentRepo documentRepo;
     private final S3Service s3Service;
     private final DocumentTypeService documentTypeService;
 
-    public DocumentService(ModelMapper modelMapper, UserTravelRepo userTravelRepo, DocumentRepo documentRepo, S3Service s3Service, DocumentTypeService documentTypeService) {
+    public DocumentService(ModelMapper modelMapper, DocumentRepo documentRepo, S3Service s3Service, DocumentTypeService documentTypeService) {
         this.modelMapper = modelMapper;
-        this.userTravelRepo = userTravelRepo;
         this.documentRepo = documentRepo;
         this.s3Service = s3Service;
         this.documentTypeService = documentTypeService;
-    }
-
-    public ApiResponse<Document> uploadTravelDocument(TravelDocumentReqDto travelDocumentReqDto) {
-        MultipartFile file = travelDocumentReqDto.getFile();
-        // Upload logic;
-        String accessUrl = "";
-        Document document = modelMapper.map(travelDocumentReqDto, Document.class);
-        document.setAccessUrl(accessUrl);
-        document.getUserTravels().add(userTravelRepo.findById(travelDocumentReqDto.getUserTravelId()).orElseThrow(() -> new ResourceNotFoundException("User travel record not found")));
-        Document doc = documentRepo.save(document);
-        return new ApiResponse<>("Document uploaded successfully", doc);
     }
 
     @Transactional
@@ -55,9 +42,5 @@ public class DocumentService implements IDocumentService {
         document.setAccessUrl(accessUrl);
 
         return documentRepo.save(document);
-    }
-
-    public ApiResponse<List<Document>> getUserTravelDocument(UUID id) {
-        return new ApiResponse<>("User travel documents fetched successfully", documentRepo.findDocumentsByUserTravel(id));
     }
 }

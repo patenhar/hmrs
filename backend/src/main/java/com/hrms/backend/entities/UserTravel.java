@@ -16,17 +16,14 @@ public class UserTravel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID pkUserTravelId;
 
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "fk_user_id", referencedColumnName = "pkUserId")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "fk_travel_id", referencedColumnName = "pkTravelId")
     private Travel travel;
 
     @OneToMany(mappedBy = "userTravel")
     private List<Expense> expenses = new ArrayList<>();
-
-    @ManyToMany(mappedBy = "userTravels")
-    private List<Document> documents = new ArrayList<>();
 }

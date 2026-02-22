@@ -1,21 +1,20 @@
 package com.hrms.backend.services.interfaces;
 
-import com.hrms.backend.dtos.request.RoleDto;
+import com.hrms.backend.dtos.request.RoleReqDto;
 import com.hrms.backend.entities.Role;
 import com.hrms.backend.utils.ApiResponse;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface IRoleService {
-    ApiResponse<List<Role>> getAll();
+    ApiResponse<List<Role>> getAllRoles();
 
-    ApiResponse<Role> getById(UUID id);
+    ApiResponse<Role> getRoleById(UUID id);
 
-    ApiResponse<Role> add(RoleDto roleDto);
+    ApiResponse<Role> addRole(RoleReqDto roleReqDto);
 
-    ApiResponse<Role> updateRole(UUID id, RoleDto roleDto);
+    ApiResponse<Role> updateRole(UUID id, RoleReqDto roleReqDto);
 
-    ApiResponse<String> delete(UUID id);
+    ApiResponse<String> deleteRole(UUID id);
 }

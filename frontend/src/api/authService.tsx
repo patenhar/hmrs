@@ -2,7 +2,7 @@ import axiosClient from "./axiosClient";
 
 type auth = { email: string; password: string };
 
-const productServices = {
+const authService = {
   register: (registerData: auth) =>
     axiosClient.post("/auth/register", registerData),
   login: (loginData: auth) => {
@@ -11,4 +11,4 @@ const productServices = {
   },
 };
 
-export default productServices;
+export default authService;
