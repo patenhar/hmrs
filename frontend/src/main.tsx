@@ -25,6 +25,9 @@ import { AddExpenseForm } from "./components/Custom/AddExpenseForm.tsx";
 import JobInfo from "./pages/JobInfo.tsx";
 import { GameBookingForm } from "./components/Custom/GameBookingForm.tsx";
 import Game from "./pages/Game.tsx";
+import SocialFeed from "./pages/SocialFeed.tsx";
+import { AddPostForm } from "./components/Custom/AddPostForm.tsx";
+import { EditPostForm } from "./components/Custom/EditPostForm.tsx";
 
 const ErrorBoundaryLayout = () => (
   <ErrorBoundary FallbackComponent={ErrorFallback}>
@@ -211,6 +214,35 @@ const router = createBrowserRouter([
                   {
                     path: "add",
                     element: <GameBookingForm />,
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            path: "social/posts",
+            element: <ProtectedRoute required={"VIEW_POST"} />,
+            children: [
+              {
+                index: true,
+                element: <SocialFeed />,
+              },
+              {
+                element: <ProtectedRoute required={"ADD_POST"} />,
+                children: [
+                  {
+                    path: "add",
+                    element: <AddPostForm />,
+                  },
+                ],
+              },
+              {
+                path: ":postId/edit",
+                element: <ProtectedRoute required={"UPDATE_POST"} />,
+                children: [
+                  {
+                    index: true,
+                    element: <EditPostForm />,
                   },
                 ],
               },

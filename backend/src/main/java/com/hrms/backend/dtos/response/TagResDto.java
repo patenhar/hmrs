@@ -7,8 +7,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class UserResDto {
-    private UUID pkUserId;
-    private String email;
-    private RoleResDto role;
+public class TagResDto {
+    private UUID pkTagId;
+    private String tag;
 }

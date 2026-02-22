@@ -1,5 +1,6 @@
 package com.hrms.backend.services;
 
+import com.hrms.backend.dtos.response.CurrentUserResDto;
 import com.hrms.backend.dtos.response.UserResDto;
 import com.hrms.backend.entities.User;
 import com.hrms.backend.repos.RoleRepo;
@@ -34,10 +35,18 @@ public class UserService implements IUserService {
         this.modelMapper = modelMapper;
     }
 
-    public UserResDto getCurrentUser() {
+    public CurrentUserResDto getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserInfo userInfo = (UserInfo) auth.getPrincipal();
-        return findUserById(userInfo.getUserId());
+        User user = userRepo.findById(userInfo.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        CurrentUserResDto dto = modelMapper.map(user, CurrentUserResDto.class);
+        if (user.getRole() != null && user.getRole().getPermissions() != null) {
+            dto.setAuthorities(user.getRole().getPermissions().stream()
+                    .map(p -> p.getPermissionName().toUpperCase())
+                    .toList());
+        }
+        return dto;
     }
 
     public UserResDto findUserById(UUID id) {

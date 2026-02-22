@@ -22,6 +22,8 @@ export const useGetCurrentUser = () => {
   return useQuery({
     queryKey: ["CurrentUser"],
     queryFn: () => getCurrentUser(),
-    staleTime: 5 * 60 * 100,
+    enabled: !!sessionStorage.getItem("token"),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 };

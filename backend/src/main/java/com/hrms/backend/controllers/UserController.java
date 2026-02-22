@@ -1,5 +1,6 @@
 package com.hrms.backend.controllers;
 
+import com.hrms.backend.dtos.response.CurrentUserResDto;
 import com.hrms.backend.dtos.response.UserResDto;
 import com.hrms.backend.entities.User;
 import com.hrms.backend.services.UserService;
@@ -25,7 +26,7 @@ public class UserController {
 
     @GetMapping("/me")
 //    @PreAuthorize("hasAuthority('VIEW_USER')")
-    public ResponseEntity<ApiResponse<UserResDto>> getCurrentUser() {
+    public ResponseEntity<ApiResponse<CurrentUserResDto>> getCurrentUser() {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Current user fetched", userService.getCurrentUser()));
     }
 

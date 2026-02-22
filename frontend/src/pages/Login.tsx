@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,13 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Field, FieldGroup } from "@/components/ui/field";
 import ButtonLink from "@/components/Custom/ButtonLink";
 import { ButtonSpinner } from "@/components/Custom/ButtonSpinner";
 import { useLogin } from "@/api/queries/useAuth";
@@ -41,11 +36,12 @@ export default function Login() {
   const { mutate: login, isPending, isSuccess } = useLogin();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (isSuccess) navigate("/travels");
+  }, [isSuccess]);
+
   function onSubmit(data: z.infer<typeof formSchema>) {
     login(data);
-    if (isSuccess) {
-      navigate("/travels");
-    }
   }
 
   return (

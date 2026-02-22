@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import authService from "../authService.tsx";
 import { toast } from "sonner";
 
@@ -19,10 +19,12 @@ export const useRegister = () => {
 };
 
 export const useLogin = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: login,
     onSuccess: (res) => {
       sessionStorage.setItem("token", res.data.data.token);
+      queryClient.invalidateQueries({ queryKey: ["CurrentUser"] });
       toast.success(res.data.message);
     },
     onError: (error) => {
