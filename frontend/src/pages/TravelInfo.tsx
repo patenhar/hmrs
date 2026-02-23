@@ -121,7 +121,11 @@ export default function TravelInfo() {
                     <TableCell>{idx + 1}</TableCell>
                     <TableCell>{tu.user.profile?.name}</TableCell>
                     <TableCell>{tu.user.email}</TableCell>
-                    <Can authority="VIEW_EXPENSE" ownerId={tu.user.pkUserId}>
+                    <Can
+                      authority="VIEW_EXPENSE"
+                      extraAuthority="VIEW_ALL_EXPENSE"
+                      ownerId={tu.user.pkUserId}
+                    >
                       <TableCell>
                         <ButtonLink
                           to={`/travels/users/${tu.pkUserTravelId}/expenses`}
@@ -129,7 +133,11 @@ export default function TravelInfo() {
                         />
                       </TableCell>
                     </Can>
-                    <Can authority="VIEW_DOCUMENT" ownerId={tu.user.pkUserId}>
+                    <Can
+                      authority="VIEW_DOCUMENT"
+                      extraAuthority="VIEW_ALL_DOCUMENT"
+                      ownerId={tu.user.pkUserId}
+                    >
                       <TableCell>
                         <ButtonLink
                           to={`/travels/users/${tu.pkUserTravelId}/documents`}

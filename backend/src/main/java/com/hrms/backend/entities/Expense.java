@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -33,6 +34,14 @@ public class Expense {
     @ManyToOne
     @JoinColumn(name = "fk_expense_type_id", referencedColumnName = "pkExpenseTypeId")
     private ExpenseType expenseType;
+
+    private LocalDateTime lastActionAt;
+
+    @ManyToOne
+    @JoinColumn(name = "fk_last_action_by", referencedColumnName = "pkUserId")
+    private User lastActionBy;
+    
+    private String remarks;
 
     @ManyToOne
     @JoinColumn(name = "fk_expense_status_id", referencedColumnName = "pkExpenseStatusId")

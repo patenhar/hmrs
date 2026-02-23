@@ -28,6 +28,12 @@ import Game from "./pages/Game.tsx";
 import SocialFeed from "./pages/SocialFeed.tsx";
 import { AddPostForm } from "./components/Custom/AddPostForm.tsx";
 import { EditPostForm } from "./components/Custom/EditPostForm.tsx";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "./context/AuthContext.tsx";
+import ProtectedRoute from "./components/Custom/ProtectedRoute.tsx";
+import { Unauthorized } from "./pages/Unauthorized.tsx";
+import { NotFound } from "./pages/NotFound.tsx";
+import { ErrorFallback } from "./pages/ErrorFallback.tsx";
 
 const ErrorBoundaryLayout = () => (
   <ErrorBoundary FallbackComponent={ErrorFallback}>
@@ -69,14 +75,39 @@ const router = createBrowserRouter([
             ],
           },
           {
-            element: <ProtectedRoute required={"ADD_PROFILE"} />,
+            element: <ProtectedRoute required={"VIEW_USER"} />,
             children: [
               {
-                path: "profile/create",
-                element: <CreateProfile />,
+                path: "users",
+                element: <Outlet />,
+                children: [
+                  {
+                    index: true,
+                    element: <div>User List</div>,
+                  },
+                  {
+                    element: <ProtectedRoute required={"ADD_PROFILE"} />,
+                    children: [
+                      {
+                        path: ":userId/profile/create",
+                        element: <CreateProfile />,
+                      },
+                    ],
+                  },
+                ],
               },
             ],
           },
+          {
+            element: <ProtectedRoute required={"VIEW_PROFILE"} />,
+            children: [
+              {
+                path: "users/:userId/profile",
+                element: <CreateProfile isEdit />,
+              },
+            ],
+          },
+
           {
             element: <ProtectedRoute required={"VIEW_ORGCHART"} />,
             children: [
@@ -142,7 +173,7 @@ const router = createBrowserRouter([
                 ],
               },
               {
-                path: "documents",
+                path: "users/:userTravelId/documents",
                 element: <ProtectedRoute required={"VIEW_DOCUMENT"} />,
                 children: [
                   {
@@ -162,7 +193,6 @@ const router = createBrowserRouter([
               },
             ],
           },
-
           {
             path: "jobs",
             element: <ProtectedRoute required={"VIEW_JOB"} />,
@@ -253,13 +283,6 @@ const router = createBrowserRouter([
     ],
   },
 ]);
-
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "./context/AuthContext.tsx";
-import ProtectedRoute from "./components/Custom/ProtectedRoute.tsx";
-import { Unauthorized } from "./pages/Unauthorized.tsx";
-import { NotFound } from "./pages/NotFound.tsx";
-import { ErrorFallback } from "./pages/ErrorFallback.tsx";
 
 const queryClient = new QueryClient();
 

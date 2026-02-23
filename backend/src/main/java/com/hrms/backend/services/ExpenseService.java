@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,14 +29,16 @@ public class ExpenseService {
     private final ExpenseTypeService expenseTypeService;
     private final UserTravelService userTravelService;
     private final ExpenseStatusService expenseStatusService;
+    private final UserService userService;
 
-    public ExpenseService(ExpenseRepo expenseRepo, ModelMapper modelMapper, DocumentService documentService, ExpenseTypeService expenseTypeService, UserTravelService userTravelService, ExpenseStatusService expenseStatusService) {
+    public ExpenseService(ExpenseRepo expenseRepo, ModelMapper modelMapper, DocumentService documentService, ExpenseTypeService expenseTypeService, UserTravelService userTravelService, ExpenseStatusService expenseStatusService, UserService userService) {
         this.expenseRepo = expenseRepo;
         this.modelMapper = modelMapper;
         this.documentService = documentService;
         this.expenseTypeService = expenseTypeService;
         this.userTravelService = userTravelService;
         this.expenseStatusService = expenseStatusService;
+        this.userService = userService;
     }
     private ExpenseResDto findExpenseById(UUID id) {
         Expense expense = expenseRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
@@ -63,10 +66,15 @@ public class ExpenseService {
     }
 
     @Transactional
-    public boolean addExpense(ExpenseReqDto expenseReqDto) throws IOException {
+    public boolean addExpense(ExpenseReqDto expenseReqDto) throws IOException, Exception {
         UserTravelResDto userTravelResDto = userTravelService.findUserTravelById(expenseReqDto.getUserTravelId());
         if (LocalDate.now().isAfter(userTravelResDto.getTravel().getReturnDate().plusDays(10))){
-            return false;
+            throw new Exception("Expense submission period has ended");
+        }
+        List<ExpenseResDto> expenses = getExpenseByUserTravelId(expenseReqDto.getUserTravelId());
+        double totalAmount = expenses.stream().mapToDouble(e -> e.getAmount()).sum() + expenseReqDto.getAmount();
+        if (totalAmount > userTravelResDto.getTravel().getMaxGrantPerDay()) {
+            throw new Exception("You cannot apply more than limit");
         }
         Expense expense = modelMapper.map(expenseReqDto, Expense.class);
         expense.setDocument(documentService.uploadDocument(expenseReqDto.getDocumentReqDto()));
@@ -79,11 +87,20 @@ public class ExpenseService {
     public Expense approveExpense(UUID id) {
         Expense expense = modelMapper.map(findExpenseById(id), Expense.class);
         expense.setExpenseStatus(modelMapper.map(expenseStatusService.findExpenseStatusById(UUID.fromString("f52bb348-748a-463f-a8d4-64e6100b5dcf")), ExpenseStatus.class));
+        expense.setLastActionAt(LocalDateTime.now());
+        expense.setLastActionBy(userService.getAuthenticatedUser());
         return expenseRepo.save(expense);
     }
-    public Expense rejectExpense(UUID id) {
+    public Expense rejectExpense(UUID id, String remarks) {
         Expense expense = modelMapper.map(findExpenseById(id), Expense.class);
         expense.setExpenseStatus(modelMapper.map(expenseStatusService.findExpenseStatusById(UUID.fromString("705899b0-d256-4bae-8774-5e300f858509")), ExpenseStatus.class));
+        expense.setLastActionAt(LocalDateTime.now());
+        expense.setLastActionBy(userService.getAuthenticatedUser());
+        if (remarks == null || remarks.isEmpty()) {
+            expense.setRemarks("No remarks provided");
+        } else {
+            expense.setRemarks(remarks);
+        }
         return expenseRepo.save(expense);
     }
 

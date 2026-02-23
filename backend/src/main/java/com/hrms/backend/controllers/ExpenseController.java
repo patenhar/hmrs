@@ -52,8 +52,8 @@ public class ExpenseController {
     }
 
     @PatchMapping(path = "/{id}/reject")
-    public ResponseEntity<ApiResponse<List<String>>> rejectExpense(@PathVariable UUID id) {
-        expenseService.rejectExpense(id);
+    public ResponseEntity<ApiResponse<List<String>>> rejectExpense(@PathVariable UUID id, @RequestBody String remark) {
+        expenseService.rejectExpense(id, remark);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Expense rejected successfully", null));
     }
 
@@ -61,7 +61,7 @@ public class ExpenseController {
 
     @PostMapping(path = "/", consumes = "multipart/form-data")
 //    @PreAuthorize("hasAuthority('ADD_TRAVEL')")
-    public ResponseEntity<ApiResponse<ExpenseResDto>> addExpense(@Validated(OnCreate.class) @ModelAttribute ExpenseReqDto expenseDto) throws IOException {
+    public ResponseEntity<ApiResponse<ExpenseResDto>> addExpense(@Validated(OnCreate.class) @ModelAttribute ExpenseReqDto expenseDto) throws Exception {
         String res = "Expense could not be added";
         if (expenseService.addExpense(expenseDto)) {
             res = "Expense added successfully";

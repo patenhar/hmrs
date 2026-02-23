@@ -2,6 +2,7 @@ package com.hrms.backend.services;
 
 import com.hrms.backend.dtos.request.RoleReqDto;
 import com.hrms.backend.dtos.response.RoleResDto;
+import com.hrms.backend.entities.Permission;
 import com.hrms.backend.entities.Role;
 import com.hrms.backend.repos.RoleRepo;
 import com.hrms.backend.utils.ResourceNotFoundException;
@@ -15,10 +16,12 @@ import java.util.UUID;
 public class RoleService {
     private final RoleRepo roleRepo;
     private final ModelMapper modelMapper;
+    private final PermissionService permissionService;
 
-    public RoleService(RoleRepo roleRepo, ModelMapper modelMapper) {
+    public RoleService(RoleRepo roleRepo, ModelMapper modelMapper, PermissionService permissionService) {
         this.roleRepo = roleRepo;
         this.modelMapper = modelMapper;
+        this.permissionService = permissionService;
     }
 
     public RoleResDto findRoleById(UUID id) {
@@ -28,6 +31,10 @@ public class RoleService {
 
     public List<RoleResDto> getAllRoles() {
         return roleRepo.findAll().stream().map(st -> modelMapper.map(st, RoleResDto.class)).toList();
+    }
+
+    public List<RoleResDto> getRoleByName(String roleName) {
+        return roleRepo.findAllRolesByRoleNameContainingIgnoreCase(roleName).stream().map(st -> modelMapper.map(st, RoleResDto.class)).toList();
     }
 
     public RoleResDto getRoleById(UUID id) {
@@ -46,9 +53,20 @@ public class RoleService {
         return modelMapper.map(updatedRole, RoleResDto.class);
     }
 
+    public RoleResDto addPermissionToRole(UUID id, UUID permissionId) {
+        RoleResDto role = findRoleById(id);
+        role.getPermissions().add(modelMapper.map(permissionService.findPermissionById(permissionId), Permission.class));
+        Role updatedRole =  roleRepo.save(modelMapper.map(role, Role.class));
+        return modelMapper.map(updatedRole, RoleResDto.class);
+    }
     public boolean deleteRole(UUID id) {
         findRoleById(id);
         roleRepo.deleteById(id);
         return true;
+    }
+
+    public RoleResDto getDefaultRole() {
+        Role role = roleRepo.findFirstByRoleName("Employee").orElseThrow(() -> new ResourceNotFoundException("Default role not found"));
+        return modelMapper.map(role, RoleResDto.class);
     }
 }

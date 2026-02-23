@@ -11,7 +11,9 @@ export function Job() {
   return (
     <>
       {isLoading ? (
-        <Spinner />
+        <div className="flex items-center justify-center h-64">
+          <Spinner className="size-8"/>
+        </div>
       ) : (
         <div className="p-8">
           <div className="flex items-center justify-between mb-4">

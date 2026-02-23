@@ -34,6 +34,8 @@ public class ProfileReqDto {
 
     private UUID managerProfileId;
 
+    private UUID userId;
+
     @NotNull(message = "Department is required", groups = {OnCreate.class, OnUpdate.class})
     private UUID departmentId;
 

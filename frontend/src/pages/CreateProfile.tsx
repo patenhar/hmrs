@@ -29,6 +29,7 @@ import { AsyncSingleCombobox } from "@/components/Custom/AsyncSingleCombobox.tsx
 import { useJobStakeHolderTypes } from "@/api/queries/useJobStakeHolders.tsx";
 import { useGetDepartments } from "@/api/queries/useDepartment.tsx";
 import { useCreateProfile } from "@/api/queries/useProfile.tsx";
+import { useParams } from "react-router-dom";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -43,6 +44,7 @@ const formSchema = z.object({
 });
 
 export default function CreateProfile() {
+  const { userId } = useParams();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -57,7 +59,7 @@ export default function CreateProfile() {
   const { mutate: createProfile, isPending } = useCreateProfile();
 
   function onSubmit(data: z.infer<typeof formSchema>) {
-    createProfile(data);
+    createProfile({ ...data, userId });
     form.reset();
   }
 

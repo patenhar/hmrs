@@ -31,8 +31,9 @@ public class TravelService {
     private final EmailService emailService;
     private final UserService userService;
     private final DateService dateService;
+    private final NotificationService notificationService;
 
-    public TravelService(TravelRepo travelRepo, ModelMapper modelMapper, AddressService addressService, UserTravelService userTravelService, EmailService emailService, UserService userService, DateService dateService) {
+    public TravelService(TravelRepo travelRepo, ModelMapper modelMapper, AddressService addressService, UserTravelService userTravelService, EmailService emailService, UserService userService, DateService dateService, NotificationService notificationService) {
         this.travelRepo = travelRepo;
         this.modelMapper = modelMapper;
         this.addressService = addressService;
@@ -40,6 +41,7 @@ public class TravelService {
         this.emailService = emailService;
         this.userService = userService;
         this.dateService = dateService;
+        this.notificationService = notificationService;
     }
 
     public TravelResDto findTravelById(UUID id) {
@@ -81,9 +83,23 @@ public class TravelService {
         for(UUID userId: travelReqDto.getUserIds()){
             userTravelService.saveUserTravel(userId, t);
         }
-//        for(UUID userId: travelReqDto.getUserIds()){
-//            emailService.sendMail(userService.findUserById(userId).getEmail(), "About new travel plan", "Congratulations, you are flying off!" + t);
-//        }
+        String body = """
+                Details:
+                Title: %s
+                Description: %s
+                Date: %s - %s
+                HR Mail: %s
+                Grant limit: %s
+                Destinations:
+                %s
+                Going with:
+                %s
+                """.formatted(t.getTitle(), t.getDescription(), t.getTravelDate(), t.getReturnDate(), t.getHrMail(), t.getMaxGrantPerDay(), t.getDestinations().stream().map(d -> "- " + d.getAddressLine1() + " " + d.getAddressLine2() + " " + d.getCity().getCityName() + d.getCity().getCountry().getCountryName() + "\n"), t.getUserTravels().stream().map(u -> u.getUser().getEmail()));
+        for(UUID userId: travelReqDto.getUserIds()){
+
+            emailService.sendMail(userService.findUserById(userId).getEmail(), "About new travel plan", "Congratulations, you are going on a trip!" + "Details:\n" + body);
+            notificationService.createNotification("New Travel Plan", "You are going on a trip!", userId);
+        }
         return true;
     }
 

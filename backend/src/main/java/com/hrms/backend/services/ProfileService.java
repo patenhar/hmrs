@@ -55,7 +55,7 @@ public class ProfileService {
 
     public ProfileResDto addProfile(ProfileReqDto profileReqDto) {
         Profile profile = modelMapper.map(profileReqDto, Profile.class);
-        profile.setUser(userService.getAuthenticatedUser());
+        profile.setUser(modelMapper.map(userService.findUserById(profileReqDto.getUserId()), User.class));
         profile.setDepartment(modelMapper.map(departmentService.findDepartmentById(profileReqDto.getDepartmentId()), Department.class));
         profile.setProfileStatus(modelMapper.map(profileStatusService.findProfileStatusById(UUID.fromString("729f81b4-782a-48b4-b92d-2b40e35ff7da")), ProfileStatus.class));
         if (profileReqDto.getManagerProfileId() != null) {

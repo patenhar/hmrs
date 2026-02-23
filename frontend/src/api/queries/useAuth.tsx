@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import authService from "../authService.tsx";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const { register, login } = authService;
 

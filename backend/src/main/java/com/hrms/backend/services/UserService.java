@@ -60,7 +60,7 @@ public class UserService implements IUserService {
         return modelMapper.map(findUserById(userInfo.getUserId()), User.class);
     }
 
-    private User findById(UUID id) {
+    public User findById(UUID id) {
         return userRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 

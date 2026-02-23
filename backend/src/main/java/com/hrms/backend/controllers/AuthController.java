@@ -2,6 +2,7 @@ package com.hrms.backend.controllers;
 
 import com.hrms.backend.dtos.request.AuthReqDto;
 import com.hrms.backend.dtos.response.LoginResDto;
+import com.hrms.backend.dtos.response.RegisterResDto;
 import com.hrms.backend.services.AuthService;
 import com.hrms.backend.utils.ApiResponse;
 import com.hrms.backend.validations.OnCreate;
@@ -24,11 +25,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<String>> register(@RequestBody @Validated(OnCreate.class) AuthReqDto authReqDto) {
-        if (!authService.register(authReqDto)) {
+    public ResponseEntity<ApiResponse<RegisterResDto>> register(@RequestBody @Validated(OnCreate.class) AuthReqDto authReqDto) {
+        RegisterResDto registerResDto = authService.register(authReqDto);
+        if (registerResDto == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>("User already registered", null));
         }
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("User registered successfully", null));
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("User registered successfully", registerResDto));
     }
 
     @PostMapping("/login")

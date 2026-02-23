@@ -1,5 +1,7 @@
 package com.hrms.backend.dtos.request;
 
+import java.util.UUID;
+
 import com.hrms.backend.validations.OnCreate;
 import com.hrms.backend.validations.OnUpdate;
 import jakarta.validation.constraints.Email;
@@ -21,4 +23,6 @@ public class AuthReqDto {
 
     @NotBlank(message = "Password is required", groups = {OnCreate.class, OnUpdate.class})
     private String password;
+
+    private UUID roleId;
 }

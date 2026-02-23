@@ -39,12 +39,22 @@ public class RoleController {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Role fetched successfully", roleService.getRoleById(id)));
     }
 
+    @GetMapping("/search")
+//    @PreAuthorize("hasAuthority('VIEW_USER')")
+    public ResponseEntity<ApiResponse<List<RoleResDto>>> getRoleByName(@RequestParam String roleName) {
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Roles fetched successfully", roleService.getRoleByName(roleName)));
+    }
+
     @PostMapping("/")
 //    @PreAuthorize("hasAuthority('ADD_ROLE')")
     public ResponseEntity<ApiResponse<RoleResDto>> addRole(@RequestBody @Validated(OnCreate.class) RoleReqDto roleReqDto) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Role added successfully", roleService.addRole(roleReqDto)));
     }
 
+    @PutMapping("/{id}/add/permissions/{permId}")
+    public ResponseEntity<ApiResponse<RoleResDto>> addPermissionToRole(@PathVariable UUID id, @PathVariable UUID permId) {
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Role updated successfully", roleService.addPermissionToRole(id, permId)));
+    }
     @PatchMapping("/{id}")
 //    @PreAuthorize("hasAuthority('MANAGE_USER')")
     public ResponseEntity<ApiResponse<RoleResDto>> updateRole(@PathVariable UUID id, @RequestBody @Validated(OnUpdate.class) RoleReqDto roleReqDto) {

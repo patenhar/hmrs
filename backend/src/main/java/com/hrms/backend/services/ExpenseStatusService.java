@@ -3,7 +3,6 @@ package com.hrms.backend.services;
 import com.hrms.backend.dtos.request.ExpenseStatusReqDto;
 import com.hrms.backend.dtos.response.ExpenseStatusResDto;
 import com.hrms.backend.entities.ExpenseStatus;
-import com.hrms.backend.entities.ExpenseStatus;
 import com.hrms.backend.repos.ExpenseStatusRepo;
 import com.hrms.backend.utils.ResourceNotFoundException;
 import org.modelmapper.ModelMapper;

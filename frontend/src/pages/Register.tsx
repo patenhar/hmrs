@@ -21,10 +21,15 @@ import { Input } from "@/components/ui/input";
 import { useRegister } from "../api/queries/useAuth.tsx";
 import ButtonLink from "@/components/Custom/ButtonLink.tsx";
 import { ButtonSpinner } from "@/components/Custom/ButtonSpinner.tsx";
+import FormField from "@/components/Custom/FormField.tsx";
+import RoleComboboxWrapper from "@/components/wrappers/RoleComboboxWrapper.tsx";
+import { is, ro } from "date-fns/locale";
+import { useNavigate } from "react-router";
 
 const formSchema = z
   .object({
     email: z.email("Invalid email address"),
+    roleId: z.string().min(1, "Role is required"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z
       .string()
@@ -42,17 +47,20 @@ export default function Register() {
       email: "",
       password: "",
       confirmPassword: "",
+      roleId: "",
     },
   });
 
-  const { mutate: register, isPending } = useRegister();
-
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    register(data);
+  const { mutateAsync: register, isPending } = useRegister();
+  const navigate = useNavigate();
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    const res = await register(data);
+    console.log(res);
+    navigate(`/users/${res.data.data.pkUserId}/profile/create`);
   }
 
   return (
-    <Card className="w-full sm:max-w-md mx-auto mt-30">
+    <Card className="w-full sm:max-w-md mx-auto mt-10">
       <CardHeader>
         <CardTitle>Register</CardTitle>
         <CardDescription>
@@ -65,63 +73,28 @@ export default function Register() {
       <CardContent>
         <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
-            <Controller
+            <FormField
+              form={form}
               name="email"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input
-                    {...field}
-                    id="email"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="something@roimaint.com"
-                    autoComplete="off"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
+              label="Email"
+              type="text"
+              placeholder="something@roimaint.com"
             />
-            <Controller
+            <FormField
+              form={form}
               name="password"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <Input
-                    {...field}
-                    id="password"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="enter your password"
-                    autoComplete="off"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
+              label="Password"
+              type="password"
+              placeholder="Password"
             />
-            <Controller
+            <FormField
+              form={form}
               name="confirmPassword"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="confirmPassword">Password</FieldLabel>
-                  <Input
-                    {...field}
-                    id="confirmPassword"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="renter your password"
-                    autoComplete="off"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
+              label="Confirm Password"
+              type="password"
+              placeholder="Confirm Password"
             />
+            <RoleComboboxWrapper disabled={false} form={form} name="roleId" />
           </FieldGroup>
         </form>
       </CardContent>
