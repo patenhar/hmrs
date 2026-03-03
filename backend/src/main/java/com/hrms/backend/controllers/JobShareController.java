@@ -29,7 +29,7 @@ public class JobShareController {
     }
 
     @PostMapping("/{id}/share")
-//    @PreAuthorize("hasAuthority('ADD_ROLE')")
+    @PreAuthorize("hasAuthority('SHARE_JOB') or hasAuthority('MANAGE_ALL_JOB')")
     public ResponseEntity<ApiResponse<String>> shareJob(@PathVariable UUID id, @RequestBody @Validated(OnCreate.class) JobShareReqDto jobShareRecordReqDto) throws MessagingException, IOException {
         jobShareRecordService.shareJob(jobShareRecordReqDto);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Job shared successfully", null));

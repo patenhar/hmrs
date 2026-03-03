@@ -8,6 +8,7 @@ export const useGetNotifications = () => {
   return useQuery({
     queryKey: ["Notifications"],
     queryFn: () => getNotifications().then((res) => res.data.data),
+    enabled: !!sessionStorage.getItem("token"),
   });
 };
 

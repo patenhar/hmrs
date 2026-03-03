@@ -10,6 +10,7 @@ const {
   updatePost,
   deletePost,
   toggleLike,
+  triggerCelebrations,
 } = postService;
 
 export const useGetAllPosts = (filters?: PostFilters) => {
@@ -71,6 +72,22 @@ export const useDeletePost = () => {
     },
     onError: (error: Error) => {
       toast.error("Failed to delete post", {
+        description: error.message || "Something went wrong",
+      });
+    },
+  });
+};
+
+export const useTriggerCelebrations = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => triggerCelebrations(),
+    onSuccess: (res) => {
+      toast.success(res.data.message);
+      queryClient.invalidateQueries({ queryKey: ["Post"] });
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to generate celebration posts", {
         description: error.message || "Something went wrong",
       });
     },

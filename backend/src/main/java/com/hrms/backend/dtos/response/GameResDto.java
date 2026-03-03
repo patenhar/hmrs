@@ -15,5 +15,6 @@ public class GameResDto {
     private Double duration;
     private LocalTime operationHourBegin;
     private LocalTime operationHourEnd;
+    private int version;
     private int bookingCycle;
 }

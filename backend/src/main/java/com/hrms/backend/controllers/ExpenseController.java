@@ -28,30 +28,32 @@ public class ExpenseController {
     }
 
     @GetMapping("/")
-//    @PreAuthorize("hasAuthority('VIEW_TRAVEL')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_EXPENSE')")
     public ResponseEntity<ApiResponse<List<ExpenseResDto>>> getAllExpenses() {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("All expenses fetched successfully", expenseService.getAllExpenses()));
     }
 
     @GetMapping("/{id}")
-//    @PreAuthorize("hasAuthority('VIEW_TRAVEL')")
+    @PreAuthorize("hasAuthority('VIEW_EXPENSE') or hasAuthority('MANAGE_ALL_EXPENSE')")
     public ResponseEntity<ApiResponse<ExpenseResDto>> getExpenseById(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Expense fetched successfully", expenseService.getExpenseById(id)));
     }
 
     @GetMapping("/user/{id}")
-//    @PreAuthorize("hasAuthority('VIEW_TRAVEL')")
+    @PreAuthorize("hasAuthority('VIEW_EXPENSE') or hasAuthority('MANAGE_ALL_EXPENSE')")
     public ResponseEntity<ApiResponse<List<ExpenseResDto>>> getExpenseByUserId(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("All user expenses fetched successfully", expenseService.getExpenseByUserId(id)));
     }
 
     @PatchMapping(path = "/{id}/approve")
+    @PreAuthorize("hasAuthority('MANAGE_EXPENSE') or hasAuthority('MANAGE_ALL_EXPENSE')")
     public ResponseEntity<ApiResponse<List<String>>> approveExpense(@PathVariable UUID id) {
         expenseService.approveExpense(id);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Expense approved successfully", null));
     }
 
     @PatchMapping(path = "/{id}/reject")
+    @PreAuthorize("hasAuthority('MANAGE_EXPENSE') or hasAuthority('MANAGE_ALL_EXPENSE')")
     public ResponseEntity<ApiResponse<List<String>>> rejectExpense(@PathVariable UUID id, @RequestBody String remark) {
         expenseService.rejectExpense(id, remark);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Expense rejected successfully", null));
@@ -60,7 +62,7 @@ public class ExpenseController {
 
 
     @PostMapping(path = "/", consumes = "multipart/form-data")
-//    @PreAuthorize("hasAuthority('ADD_TRAVEL')")
+    @PreAuthorize("hasAuthority('ADD_EXPENSE') or hasAuthority('MANAGE_ALL_EXPENSE')")
     public ResponseEntity<ApiResponse<ExpenseResDto>> addExpense(@Validated(OnCreate.class) @ModelAttribute ExpenseReqDto expenseDto) throws Exception {
         String res = "Expense could not be added";
         if (expenseService.addExpense(expenseDto)) {
@@ -70,13 +72,13 @@ public class ExpenseController {
     }
 
     @PutMapping("/{id}")
-//    @PreAuthorize("hasAuthority('MANAGE_TRAVEL')")
+    @PreAuthorize("hasAuthority('MANAGE_EXPENSE') or hasAuthority('MANAGE_ALL_EXPENSE')")
     public ResponseEntity<ApiResponse<ExpenseResDto>> updateExpense(@PathVariable UUID id, @RequestBody @Validated(OnUpdate.class) ExpenseReqDto expenseDto) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("All expenses fetched successfully", expenseService.updateExpense(id, expenseDto)));
     }
 
     @DeleteMapping("/{id}")
-//    @PreAuthorize("hasAuthority('MANAGE_TRAVEL')")
+    @PreAuthorize("hasAuthority('MANAGE_EXPENSE') or hasAuthority('MANAGE_ALL_EXPENSE')")
     public ResponseEntity<ApiResponse<String>> deleteExpense(@PathVariable UUID id) {
         String res = "Expense could not be deleted";
         if(expenseService.deleteExpense(id)){

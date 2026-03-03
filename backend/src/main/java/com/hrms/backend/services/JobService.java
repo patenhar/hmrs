@@ -40,7 +40,17 @@ public class JobService {
     }
 
     public List<JobResDto> getAllJobs() {
-        return jobRepo.findAll().stream().map(job -> modelMapper.map(job, JobResDto.class)).toList();
+        return jobRepo.findAll().stream()
+                .filter(job -> !Boolean.TRUE.equals(job.getIsDeleted()))
+                .map(job -> modelMapper.map(job, JobResDto.class)).toList();
+    }
+
+    @Transactional
+    public boolean softDeleteJob(UUID id) {
+        Job job = findJobById(id);
+        job.setIsDeleted(true);
+        jobRepo.save(job);
+        return true;
     }
 
     public JobResDto getJobById(UUID id) {
@@ -64,8 +74,10 @@ public class JobService {
         Job job = findJobById(id);
         job.setTitle(jobReqDto.getTitle());
         job.setDescription(jobReqDto.getDescription());
-        Document jd = documentService.uploadDocument(jobReqDto.getDocumentReqDto());
-        job.setJd(jd);
+        if (jobReqDto.getDocumentReqDto() != null && jobReqDto.getDocumentReqDto().getFile() != null && !jobReqDto.getDocumentReqDto().getFile().isEmpty()) {
+            Document jd = documentService.uploadDocument(jobReqDto.getDocumentReqDto());
+            job.setJd(jd);
+        }
         job.getJobStakeHolders().clear();
         for(JobStakeHolderReqDto jobStakeHolderReqDto: jobReqDto.getJobStakeHolderReqDtos()) {
             jobStakeHolderService.addJobStakeHolder(job, jobStakeHolderReqDto);

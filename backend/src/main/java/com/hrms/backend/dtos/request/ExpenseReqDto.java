@@ -1,5 +1,6 @@
 package com.hrms.backend.dtos.request;
 
+import com.hrms.backend.enums.ExpenseType;
 import com.hrms.backend.validations.OnCreate;
 import com.hrms.backend.validations.OnUpdate;
 import jakarta.validation.Valid;
@@ -28,5 +29,5 @@ public class ExpenseReqDto {
     private UUID userTravelId;
 
     @NotNull(message = "Expense type is required", groups = {OnCreate.class, OnUpdate.class})
-    private UUID expenseTypeId;
+    private ExpenseType expenseType;
 }

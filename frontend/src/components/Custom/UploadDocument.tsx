@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,62 +11,58 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Textarea } from "@/components/ui/textarea";
 import { FieldGroup } from "@/components/ui/field";
 import { ButtonSpinner } from "@/components/Custom/ButtonSpinner";
 import { useNavigate, useParams } from "react-router-dom";
 import FileFormField from "./FileFormField";
-import DocumentTypeComboboxWrapper from "../wrappers/DocumentTypeCombobxWrapper";
+import AsyncCombobox from "./AsyncCombobox";
+import { useGetDocumentTypes } from "@/api/queries/useDocument";
 import { useUploadTravelDocument } from "@/api/queries/useTravel";
-import { useState } from "react";
 
 const formSchema = z.object({
   documentReqDto: z.object({
-    fkDocumentTypeId: z.string().min(1, "Document type is required"),
+    documentType: z
+      .object({ pkDocumentTypeId: z.string(), documentTypeName: z.string() })
+      .nullable()
+      .refine((v) => v !== null, { message: "Document type is required" }),
     file: z.any().refine((file) => file instanceof File, {
       message: "File is required",
     }),
   }),
 });
 
-export function UploadDocument({ name }) {
+export function UploadDocument({ name }: Readonly<{ name: string }>) {
   const { userTravelId } = useParams();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       documentReqDto: {
-        fkDocumentTypeId: "",
+        documentType: null,
         file: undefined,
       },
     },
   });
 
-  const {
-    isPending,
-    mutate: uploadTravelDocument,
-    isSuccess,
-  } = useUploadTravelDocument(userTravelId);
+  const { isPending, mutate: uploadTravelDocument } =
+    useUploadTravelDocument(userTravelId);
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     console.log("ad");
     const formData = new FormData();
-    formData.append("userTravelId", userTravelId);
+    formData.append("userTravelId", userTravelId ?? "");
     formData.append("documentReqDto.file", data.documentReqDto.file);
     formData.append(
-      "documentReqDto.fkDocumentTypeId",
-      data.documentReqDto.fkDocumentTypeId,
+      "documentReqDto.documentType",
+      data.documentReqDto.documentType!.pkDocumentTypeId,
     );
     uploadTravelDocument(
       { id: userTravelId, documentDto: formData },
-      { onSuccess: () => navigate(-1) },
+      {
+        onSuccess: () => {
+          navigate(-1);
+        },
+      },
     );
   }
   const navigate = useNavigate();
@@ -75,17 +70,11 @@ export function UploadDocument({ name }) {
     <Dialog
       open={true}
       onOpenChange={(open) => {
-        if (!open) navigate(-1);
+        if (!open) {
+          navigate(-1);
+        }
       }}
     >
-      {/* <DialogTrigger
-        asChild
-        onClick={(e) => {
-          e.stopPropagation();
-        }}
-      >
-        <Button variant="default">Upload files</Button>
-      </DialogTrigger> */}
       <DialogContent className="sm:max-w-sm ">
         <DialogHeader>
           <DialogTitle>Upload Document</DialogTitle>
@@ -97,9 +86,15 @@ export function UploadDocument({ name }) {
           encType="multipart/form-data"
         >
           <FieldGroup>
-            <DocumentTypeComboboxWrapper
+            <AsyncCombobox
+              single={true}
               form={form}
-              name={"documentReqDto.fkDocumentTypeId"}
+              name={"documentReqDto.documentType"}
+              label={"Document type"}
+              placeholder={"Select document type"}
+              fetchFunction={useGetDocumentTypes}
+              displayKey={"documentTypeName"}
+              primaryKey={"pkDocumentTypeId"}
             />
             <FileFormField
               form={form}
@@ -112,7 +107,11 @@ export function UploadDocument({ name }) {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <ButtonSpinner isPending={isPending} text="Submit" />
+            <ButtonSpinner
+              isPending={isPending}
+              form="form-rhf-demo"
+              text="Submit"
+            />
           </DialogFooter>
         </form>
       </DialogContent>

@@ -21,6 +21,7 @@ export function AsyncSingleCombobox({
   valueField,
   displayField,
   onInputChange,
+  onSelect = undefined,
 }) {
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -64,6 +65,7 @@ export function AsyncSingleCombobox({
                 field.onChange(
                   nextSelectedValue ? nextSelectedValue[valueField] : null,
                 );
+                onSelect?.(nextSelectedValue ?? null);
                 setSearchValue("");
               }}
               onInputValueChange={(nextSearchValue) => {

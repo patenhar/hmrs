@@ -22,16 +22,18 @@ public class Job extends Auditable {
     @NotBlank
     private String description;
 
-    @OneToMany(mappedBy = "job")
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JobStakeHolder> jobStakeHolders;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "fk_jd_id", referencedColumnName = "pkDocumentId")
     private Document jd;
 
-    @OneToMany(mappedBy = "job")
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JobShareRecord> jobShareRecords;
 
-    @OneToMany(mappedBy = "job")
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Referral> referrals;
+
+    private Boolean isDeleted = false;
 }

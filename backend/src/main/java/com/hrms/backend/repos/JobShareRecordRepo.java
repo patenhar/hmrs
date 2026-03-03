@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 
 public interface JobShareRecordRepo extends JpaRepository<JobShareRecord, UUID> {
+    void deleteAllByUser_PkUserId(UUID userId);
 }

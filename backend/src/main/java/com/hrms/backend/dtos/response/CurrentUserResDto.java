@@ -13,4 +13,5 @@ public class CurrentUserResDto {
     private String email;
     private RoleResDto role;
     private List<String> authorities;
+    private ProfileResDtoForUser profile;
 }

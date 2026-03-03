@@ -1,23 +1,17 @@
-import { useState } from "react";
-import { AsyncSingleCombobox } from "../Custom/AsyncSingleCombobox";
+import AsyncCombobox from "../Custom/AsyncCombobox";
 import { useGetExpenseType } from "@/api/queries/useExpense";
 
 export default function ExpenseTypeComboboxWrapper({ disabled, form, name }) {
-  const [searchValue, setSearchValue] = useState("");
-
-  const { isLoading, data } = useGetExpenseType(searchValue);
-
   return (
-    <AsyncSingleCombobox
+    <AsyncCombobox
+      single={true}
       form={form}
       name={name}
       label={"Expense Type"}
       placeholder={"Select expense type"}
-      isLoading={isLoading}
-      queryRes={data?.data.data}
-      valueField={"pkExpenseTypeId"}
-      displayField={"expenseTypeName"}
-      onInputChange={setSearchValue}
+      fetchFunction={useGetExpenseType}
+      displayKey={"expenseTypeName"}
+      primaryKey={"pkExpenseTypeId"}
     />
   );
 }

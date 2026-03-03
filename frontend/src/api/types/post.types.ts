@@ -49,8 +49,8 @@ export interface PostResDto {
 export interface PostReqDto {
   title: string;
   description: string;
-  tagIds: string[];
-  visibilityId: string;
+  tags: string[];
+  visibilityId?: string;
 }
 
 export interface CommentReqDto {

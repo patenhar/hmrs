@@ -11,6 +11,7 @@ import com.hrms.backend.validations.OnUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +32,7 @@ public class CommentController {
     }
 
     @GetMapping("/post/{postId}")
-//    @PreAuthorize("hasAuthority('VIEW_POST')")
+    @PreAuthorize("hasAuthority('VIEW_POST') or hasAuthority('MANAGE_ALL_POST')")
     public ResponseEntity<ApiResponse<List<CommentResDto>>> getCommentsByPost(@PathVariable UUID postId) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse<>("Comments fetched successfully",
@@ -39,7 +40,7 @@ public class CommentController {
     }
 
     @PostMapping("/")
-//    @PreAuthorize("hasAuthority('ADD_POST')")
+    @PreAuthorize("hasAuthority('ADD_POST') or hasAuthority('MANAGE_ALL_POST')")
     public ResponseEntity<ApiResponse<CommentResDto>> addComment(
             @RequestBody @Validated(OnCreate.class) CommentReqDto dto) {
         return ResponseEntity.status(HttpStatus.OK)
@@ -47,7 +48,7 @@ public class CommentController {
     }
 
     @PutMapping("/{id}")
-//    @PreAuthorize("hasAuthority('UPDATE_POST')")
+    @PreAuthorize("hasAuthority('MANAGE_POST') or hasAuthority('MANAGE_ALL_POST')")
     public ResponseEntity<ApiResponse<CommentResDto>> updateComment(
             @PathVariable UUID id,
             @RequestBody @Validated(OnUpdate.class) CommentReqDto dto) {
@@ -57,7 +58,7 @@ public class CommentController {
     }
 
     @DeleteMapping("/{id}")
-//    @PreAuthorize("hasAuthority('DELETE_POST') or hasAuthority('MANAGE_POST')")
+    @PreAuthorize("hasAuthority('MANAGE_POST') or hasAuthority('MANAGE_ALL_POST')")
     public ResponseEntity<ApiResponse<String>> deleteComment(
             @PathVariable UUID id,
             @RequestBody(required = false) DeleteWithReasonReqDto reasonDto) {

@@ -1,5 +1,6 @@
 package com.hrms.backend.entities;
 
+import com.hrms.backend.enums.ProfileStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -16,6 +17,15 @@ import java.util.UUID;
 @Getter
 @Setter
 public class Profile extends Auditable {
+
+    @PreRemove
+    private void beforeDelete() {
+        if (teamMembers != null) {
+            for (Profile member : teamMembers) {
+                member.setManagerProfile(null);
+            }
+        }
+    }
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID pkProfileId;
@@ -44,8 +54,7 @@ public class Profile extends Auditable {
     @JoinColumn(name = "fk_deparment_id", referencedColumnName = "pkDepartmentId")
     private Department department;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_profile_status_id", referencedColumnName = "pkProfileStatusId")
+    @Enumerated(EnumType.STRING)
     private ProfileStatus profileStatus;
 
     @ManyToMany

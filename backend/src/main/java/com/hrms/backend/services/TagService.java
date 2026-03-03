@@ -42,4 +42,14 @@ public class TagService {
         tag.setTag(tagName);
         return modelMapper.map(tagRepo.save(tag), TagResDto.class);
     }
+
+    public Tag findOrCreateByName(String name) {
+        String normalized = name.strip().replaceAll("^#+", ""); // strip leading #
+        return tagRepo.findByTagIgnoreCase(normalized)
+                .orElseGet(() -> {
+                    Tag t = new Tag();
+                    t.setTag(normalized);
+                    return tagRepo.save(t);
+                });
+    }
 }

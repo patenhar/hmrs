@@ -28,31 +28,31 @@ public class PermissionController {
     }
 
     @GetMapping("/")
-//    @PreAuthorize("hasAuthority('VIEW_USER')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_USER')")
     public ResponseEntity<ApiResponse<List<PermissionResDto>>> getAllPermissions() {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("All permissions fetched successfully", permissionService.getAllPermissions()));
     }
 
     @GetMapping("/{id}")
-//    @PreAuthorize("hasAuthority('VIEW_USER')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_USER')")
     public ResponseEntity<ApiResponse<PermissionResDto>> getPermissionById(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Permission fetched successfully", permissionService.getPermissionById(id)));
     }
 
     @PostMapping("/")
-//    @PreAuthorize("hasAuthority('ADD_ROLE')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_USER')")
     public ResponseEntity<ApiResponse<PermissionResDto>> addPermission(@RequestBody @Validated(OnCreate.class) PermissionReqDto permissionReqDto) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Permission added successfully", permissionService.addPermission(permissionReqDto)));
     }
 
     @PatchMapping("/{id}")
-//    @PreAuthorize("hasAuthority('MANAGE_USER')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_USER')")
     public ResponseEntity<ApiResponse<PermissionResDto>> updatePermission(@PathVariable UUID id, @RequestBody @Validated(OnUpdate.class) PermissionReqDto permissionReqDto) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Permission updated successfully", permissionService.updatePermission(id, permissionReqDto)));
     }
 
     @DeleteMapping("/{id}")
-//    @PreAuthorize("hasAuthority('MANAGE_USER')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_USER')")
     public ResponseEntity<ApiResponse<String>> deletePermission(@PathVariable UUID id) {
         String res = "Permission could not be deleted";
         if (permissionService.deletePermission(id)){

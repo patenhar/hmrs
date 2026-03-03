@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -11,25 +11,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { useRegister } from "../api/queries/useAuth.tsx";
-import ButtonLink from "@/components/Custom/ButtonLink.tsx";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { ButtonSpinner } from "@/components/Custom/ButtonSpinner.tsx";
 import FormField from "@/components/Custom/FormField.tsx";
 import { DatePicker } from "@/components/Custom/DatePicker.tsx";
-import { useState } from "react";
+import { useEffect } from "react";
 import { useUser } from "@/api/queries/useUser.tsx";
-import { AsyncSingleCombobox } from "@/components/Custom/AsyncSingleCombobox.tsx";
-import { useJobStakeHolderTypes } from "@/api/queries/useJobStakeHolders.tsx";
+import AsyncCombobox from "@/components/Custom/AsyncCombobox.tsx";
 import { useGetDepartments } from "@/api/queries/useDepartment.tsx";
-import { useCreateProfile } from "@/api/queries/useProfile.tsx";
-import { useParams } from "react-router-dom";
+import {
+  useCreateProfile,
+  useGetProfileByUserId,
+  useUpdateProfile,
+} from "@/api/queries/useProfile.tsx";
+import { useNavigate, useParams } from "react-router-dom";
+import { useGetAllGames } from "@/api/queries/useGames.tsx";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -39,39 +37,125 @@ const formSchema = z.object({
   joiningDate: z
     .date("Joining date is required")
     .max(new Date(), "Joining date must be in the past"),
-  managerProfileId: z.string().optional(),
-  departmentId: z.string("Department is required"),
+  managerProfileId: z
+    .object({ pkUserId: z.string(), email: z.string() })
+    .nullable()
+    .optional(),
+  departmentId: z
+    .object({ pkDepartmentId: z.string(), departmentName: z.string() })
+    .nullable(),
+  gameIds: z.array(z.string()).optional(),
 });
 
-export default function CreateProfile() {
+type CreateProfileProps = {
+  isEdit?: boolean;
+};
+
+type GameOption = {
+  pkGameId: string;
+  gameName: string;
+};
+
+export default function CreateProfile({
+  isEdit = false,
+}: Readonly<CreateProfileProps>) {
   const { userId } = useParams();
+  const navigate = useNavigate();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       birthDate: undefined,
       joiningDate: undefined,
-      managerProfileId: "",
+      managerProfileId: null,
       departmentId: null,
+      gameIds: [],
     },
   });
 
-  const { mutate: createProfile, isPending } = useCreateProfile();
+  const { mutate: createProfile, isPending: creating } = useCreateProfile();
+  const { mutate: updateProfile, isPending: updating } = useUpdateProfile();
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    createProfile({ ...data, userId });
-    form.reset();
+  const { data: currentProfileData, isLoading: profileLoading } =
+    useGetProfileByUserId(userId ?? "", isEdit);
+
+  const currentProfile = currentProfileData?.data?.data;
+
+  useEffect(() => {
+    if (!isEdit || !currentProfile) return;
+    form.reset({
+      name: currentProfile.name ?? "",
+      birthDate: currentProfile.birthDate
+        ? new Date(currentProfile.birthDate + "T00:00:00")
+        : undefined,
+      joiningDate: currentProfile.joiningDate
+        ? new Date(currentProfile.joiningDate + "T00:00:00")
+        : undefined,
+      managerProfileId: currentProfile.managerProfile?.user
+        ? {
+            pkUserId: currentProfile.managerProfile.user.pkUserId,
+            email: currentProfile.managerProfile.user.email ?? "",
+          }
+        : null,
+      departmentId: currentProfile.department
+        ? {
+            pkDepartmentId: currentProfile.department.pkDepartmentId,
+            departmentName: currentProfile.department.departmentName ?? "",
+          }
+        : null,
+      gameIds: (currentProfile.games ?? []).map(
+        (game: GameOption) => game.pkGameId,
+      ),
+    });
+  }, [currentProfile, form, isEdit]);
+
+  const isPending = creating || updating;
+
+  function formatLocalDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   }
 
-  const [searchValue, setSearchValue] = useState("");
-  const { isLoading: managerLoading, data: managerData } = useUser(searchValue);
-  const { isLoading: departmentLoading, data: departmentData } =
-    useGetDepartments(searchValue);
+  function onSubmit(data: z.infer<typeof formSchema>) {
+    const payload = {
+      ...data,
+      birthDate: formatLocalDate(data.birthDate),
+      joiningDate: formatLocalDate(data.joiningDate),
+      departmentId: data.departmentId?.pkDepartmentId,
+      managerProfileId: data.managerProfileId?.pkUserId ?? undefined,
+    };
+    if (isEdit && currentProfile?.pkProfileId) {
+      updateProfile(
+        { profileId: currentProfile.pkProfileId, data: payload },
+        {
+          onSuccess: () => navigate(`/profiles/${currentProfile?.pkProfileId}`),
+        },
+      );
+      return;
+    }
+
+    createProfile({ ...payload, userId });
+  }
+
+  const { data: gameData } = useGetAllGames();
+
+  const games: GameOption[] = gameData?.data?.data ?? [];
+  const selectedGameIds = form.watch("gameIds") ?? [];
+
+  if (isEdit && profileLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Spinner className="size-8" />
+      </div>
+    );
+  }
 
   return (
     <Card className="w-full sm:max-w-xl mx-auto mt-30">
       <CardHeader>
-        <CardTitle>Create Profile</CardTitle>
+        <CardTitle>{isEdit ? "Edit Profile" : "Create Profile"}</CardTitle>
         <CardDescription>
           <div className="w-fit">Fill in the details below to move further</div>
         </CardDescription>
@@ -95,16 +179,15 @@ export default function CreateProfile() {
               label={"Joining date"}
               name={"joiningDate"}
             />
-            <AsyncSingleCombobox
+            <AsyncCombobox
+              single={true}
               form={form}
               name={"departmentId"}
               label={"Department"}
               placeholder={"Select department"}
-              isLoading={departmentLoading}
-              queryRes={departmentData?.data.data}
-              valueField={"pkDepartmentId"}
-              displayField={"departmentName"}
-              onInputChange={setSearchValue}
+              fetchFunction={useGetDepartments}
+              displayKey={"departmentName"}
+              primaryKey={"pkDepartmentId"}
             />
           </FieldGroup>
           <FieldGroup>
@@ -113,17 +196,68 @@ export default function CreateProfile() {
               label={"Date of birth"}
               name={"birthDate"}
             />
-            <AsyncSingleCombobox
+            <AsyncCombobox
+              single={true}
               form={form}
               name={"managerProfileId"}
               label={"Manager"}
               placeholder={"Select manager"}
-              isLoading={managerLoading}
-              queryRes={managerData?.data.data}
-              valueField={"pkUserId"}
-              displayField={"email"}
-              onInputChange={setSearchValue}
+              fetchFunction={useUser}
+              displayKey={"email"}
+              primaryKey={"pkUserId"}
             />
+            <Field>
+              <FieldLabel htmlFor={"gameIds"}>Game interests</FieldLabel>
+              <div className="space-y-3 rounded-md border p-3">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      form.setValue(
+                        "gameIds",
+                        games.map((game) => game.pkGameId),
+                      )
+                    }
+                  >
+                    Select all
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => form.setValue("gameIds", [])}
+                  >
+                    Clear all
+                  </Button>
+                </div>
+                <div className="max-h-40 space-y-2 overflow-y-auto pr-1">
+                  {games.map((game) => {
+                    const checked = selectedGameIds.includes(game.pkGameId);
+                    return (
+                      <label
+                        key={game.pkGameId}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(value) => {
+                            const updated = value
+                              ? [...selectedGameIds, game.pkGameId]
+                              : selectedGameIds.filter(
+                                  (id) => id !== game.pkGameId,
+                                );
+                            form.setValue("gameIds", updated);
+                          }}
+                        />
+                        {game.gameName}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            </Field>
           </FieldGroup>
         </form>
       </CardContent>
@@ -135,7 +269,7 @@ export default function CreateProfile() {
           <ButtonSpinner
             isPending={isPending}
             form="form-rhf-demo"
-            text="Submit"
+            text={isEdit ? "Update" : "Submit"}
           />
         </Field>
       </CardFooter>

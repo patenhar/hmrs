@@ -2,6 +2,7 @@ package com.hrms.backend.filters;
 
 import com.hrms.backend.services.JwtService;
 import com.hrms.backend.utils.UserInfo;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -37,40 +39,54 @@ public class AuthFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        if (req.getRequestURI().startsWith("/api/auth/")
+        boolean isPublicPath = req.getRequestURI().equals("/api/auth/login")
                 || req.getRequestURI().contains("swagger")
                 || req.getRequestURI().contains("/v3/api-docs")
-                || req.getRequestURI().contains("actuator")
-        ) {
-            filterChain.doFilter(req, res);
-            return;
-        }
+                || req.getRequestURI().contains("actuator");
 
         String authHeader = req.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            res.setStatus(HttpStatus.UNAUTHORIZED.value());
-            res.setContentType("application/json");
-            res.getWriter().write("""
-                    {
-                        "message": "Unauthorized",
-                        "data": null
-                    }
-                    """);
+            if (isPublicPath) {
+                filterChain.doFilter(req, res);
+            } else {
+                writeUnauthorized(res);
+            }
             return;
         }
 
-        String token = authHeader.substring(7);
+        try {
+            String token = authHeader.substring(7);
+            String email = jwtService.getEmail(token);
 
-        String email = jwtService.getEmail(token);
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserInfo userInfo = (UserInfo) userDetailsService.loadUserByUsername(email);
-            if(jwtService.validateToken(token, userInfo.getUsername())){
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userInfo, null, userInfo.getAuthorities());
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserInfo userInfo = (UserInfo) userDetailsService.loadUserByUsername(email);
+                if (jwtService.validateToken(token, userInfo.getUsername())) {
+                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userInfo, null, userInfo.getAuthorities());
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                } else {
+                    writeUnauthorized(res);
+                    return;
+                }
             }
+        } catch (JwtException | IllegalArgumentException | UsernameNotFoundException | ClassCastException ex) {
+            SecurityContextHolder.clearContext();
+            writeUnauthorized(res);
+            return;
         }
+
         filterChain.doFilter(req, res);
+    }
+
+    private void writeUnauthorized(HttpServletResponse res) throws IOException {
+        res.setStatus(HttpStatus.UNAUTHORIZED.value());
+        res.setContentType("application/json");
+        res.getWriter().write("""
+                {
+                    "message": "Unauthorized",
+                    "data": null
+                }
+                """);
     }
 }

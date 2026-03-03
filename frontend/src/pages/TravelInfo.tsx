@@ -6,7 +6,6 @@ import {
   CardDescription,
   CardContent,
   CardAction,
-  CardFooter,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useNavigate, useParams } from "react-router-dom";
@@ -18,8 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Upload } from "lucide-react";
-import { AddTravelForm } from "@/components/Custom/AddTravelForm";
 import ButtonLink from "@/components/Custom/ButtonLink";
 import { Button } from "@/components/ui/button";
 import Can from "@/components/Custom/Can";
@@ -50,14 +47,16 @@ export default function TravelInfo() {
           </CardTitle>
           <CardDescription>{travel.description}</CardDescription>
           <CardAction>
-            <Button
-              variant={"default"}
-              onClick={() => {
-                navigate("update");
-              }}
-            >
-              Update travel
-            </Button>
+            <Can authority={"MANAGE_ALL_TRAVEL"}>
+              <Button
+                variant={"default"}
+                onClick={() => {
+                  navigate("update");
+                }}
+              >
+                Update travel
+              </Button>
+            </Can>
           </CardAction>
         </CardHeader>
         <Separator />
@@ -123,7 +122,7 @@ export default function TravelInfo() {
                     <TableCell>{tu.user.email}</TableCell>
                     <Can
                       authority="VIEW_EXPENSE"
-                      extraAuthority="VIEW_ALL_EXPENSE"
+                      extraAuthority="MANAGE_ALL_EXPENSE"
                       ownerId={tu.user.pkUserId}
                     >
                       <TableCell>
@@ -135,7 +134,7 @@ export default function TravelInfo() {
                     </Can>
                     <Can
                       authority="VIEW_DOCUMENT"
-                      extraAuthority="VIEW_ALL_DOCUMENT"
+                      extraAuthority="MANAGE_ALL_DOCUMENT"
                       ownerId={tu.user.pkUserId}
                     >
                       <TableCell>

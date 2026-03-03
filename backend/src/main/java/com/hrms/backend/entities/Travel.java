@@ -39,7 +39,7 @@ public class Travel extends Auditable {
     @Email
     private String hrMail;
 
-    @ManyToMany(cascade = CascadeType.DETACH)
+    @ManyToMany
     @JoinTable(
             name = "travel_destinations",
             joinColumns = @JoinColumn(name = "fk_travel_id"),
@@ -47,6 +47,8 @@ public class Travel extends Auditable {
     )
     private List<Address> destinations = new ArrayList<>();
 
-    @OneToMany(mappedBy = "travel")
+    @OneToMany(mappedBy = "travel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserTravel> userTravels = new ArrayList<>();
+
+    private Boolean isDeleted = false;
 }

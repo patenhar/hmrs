@@ -23,7 +23,7 @@ public class Role extends Auditable {
     @NotBlank
     private String roleName;
 
-    @OneToMany(mappedBy = "role", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
     private List<User> users;
 
     @ManyToMany(fetch = FetchType.EAGER)

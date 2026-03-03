@@ -1,5 +1,6 @@
 package com.hrms.backend.entities;
 
+import com.hrms.backend.enums.GameBookingStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -30,8 +31,7 @@ public class GameBooking extends Auditable {
     @NotNull
     private long inversePriority;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_game_booking_status_id", referencedColumnName = "pkGameBookingStatusId")
+    @Enumerated(EnumType.STRING)
     private GameBookingStatus gameBookingStatus;
 
     @ManyToMany

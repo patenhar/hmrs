@@ -12,19 +12,19 @@ export function Job() {
     <>
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
-          <Spinner className="size-8"/>
+          <Spinner className="size-8" />
         </div>
       ) : (
-        <div className="p-8">
+        <div className="p-8 h-full flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
               Jobs
             </h4>
-            <Can authority={"ADD_JOB"}>
+            <Can authority={"MANAGE_ALL_JOB"}>
               <Button onClick={() => navigate("add")}>Add Job</Button>
             </Can>
           </div>
-          <div className="p-1 flex gap-4 overflow-auto">
+          <div className="grid p-1 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto">
             {data?.data.data.map((job) => (
               <JobCard
                 key={job.pkJobId}

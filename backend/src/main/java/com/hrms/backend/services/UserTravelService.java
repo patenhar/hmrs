@@ -4,7 +4,6 @@ import com.hrms.backend.dtos.request.UserTravelReqDto;
 import com.hrms.backend.dtos.response.UserTravelResDto;
 import com.hrms.backend.dtos.response.UserTravelResDtoForTravel;
 import com.hrms.backend.entities.Travel;
-import com.hrms.backend.entities.User;
 import com.hrms.backend.entities.UserTravel;
 import com.hrms.backend.repos.TravelRepo;
 import com.hrms.backend.repos.UserTravelRepo;
@@ -35,6 +34,10 @@ public class UserTravelService {
         return modelMapper.map(userTravel, UserTravelResDto.class);
     }
 
+    public UserTravel findUserTravelEntityById(UUID id) {
+        return userTravelRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("UserTravel not found"));
+    }
+
     public List<UserTravelResDto> getAllUserTravels() {
         return userTravelRepo.findAll().stream().map(st -> modelMapper.map(st, UserTravelResDto.class)).toList();
     }
@@ -49,14 +52,14 @@ public class UserTravelService {
 
     public UserTravelResDto addUserTravel(UserTravelReqDto userTravelReqDto) {
         UserTravel userTravel = new UserTravel();
-        userTravel.setUser(modelMapper.map(userService.findUserById(userTravelReqDto.getUserId()), User.class));
+        userTravel.setUser(userService.findById(userTravelReqDto.getUserId()));
         userTravel.setTravel(travelRepo.findById(userTravelReqDto.getTravelId()).orElseThrow(() -> new ResourceNotFoundException("Travel not found")));
         return modelMapper.map(userTravelRepo.save(userTravel), UserTravelResDto.class);
     }
 
     public UserTravelResDto saveUserTravel(UUID userId, Travel travel){
         UserTravel userTravel = new UserTravel();
-        userTravel.setUser(modelMapper.map(userService.findUserById(userId), User.class));
+        userTravel.setUser(userService.findById(userId));
         userTravel.setTravel(travel);
         return modelMapper.map(userTravelRepo.save(userTravel), UserTravelResDto.class);
     }

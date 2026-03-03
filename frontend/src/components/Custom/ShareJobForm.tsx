@@ -11,7 +11,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { FieldGroup } from "@/components/ui/field";
 import FormField from "@/components/Custom/FormField";
@@ -38,7 +37,14 @@ export function ShareJobForm() {
   function onSubmit(data: z.infer<typeof formSchema>) {
     console.log(data);
     console.log(jobId);
-    shareJob({ id: jobId, data: { email: data.email, jobId } });
+    shareJob(
+      { id: jobId, data: { email: data.email, jobId } },
+      {
+        onSuccess: () => {
+          navigate(-1);
+        },
+      },
+    );
   }
 
   const navigate = useNavigate();
@@ -46,20 +52,12 @@ export function ShareJobForm() {
     <Dialog
       open={true}
       onOpenChange={(open) => {
-        if (!open) navigate(-1);
+        if (!open) {
+          navigate(-1);
+        }
       }}
     >
       <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
-        {/* <DialogTrigger
-          asChild
-          className="w-full pointer-events-auto"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`${jobId}/share`);
-          }}
-        >
-          <Button variant="secondary">Share Job</Button>
-        </DialogTrigger> */}
         <DialogContent
           className="sm:max-w-sm pointer-events-auto"
           onClick={(e) => {

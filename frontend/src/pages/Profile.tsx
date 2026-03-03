@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -11,24 +11,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { useRegister } from "../api/queries/useAuth.tsx";
-import ButtonLink from "@/components/Custom/ButtonLink.tsx";
+import { Field, FieldGroup } from "@/components/ui/field";
+import { useCreateProfile } from "@/api/queries/useProfile.tsx";
 import { ButtonSpinner } from "@/components/Custom/ButtonSpinner.tsx";
 import FormField from "@/components/Custom/FormField.tsx";
 import { DatePicker } from "@/components/Custom/DatePicker.tsx";
-import { useState } from "react";
 import { useUser } from "@/api/queries/useUser.tsx";
-import { AsyncSingleCombobox } from "@/components/Custom/AsyncSingleCombobox.tsx";
-import { useJobStakeHolderTypes } from "@/api/queries/useJobStakeHolders.tsx";
+import AsyncCombobox from "@/components/Custom/AsyncCombobox.tsx";
 import { useGetDepartments } from "@/api/queries/useDepartment.tsx";
-import { useCreateProfile } from "@/api/queries/useProfile.tsx";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -38,8 +28,14 @@ const formSchema = z.object({
   joiningDate: z
     .date("Joining date is required")
     .max(new Date(), "Joining date must be in the past"),
-  managerProfileId: z.string().optional(),
-  departmentId: z.string("Department is required"),
+  managerProfileId: z
+    .object({ pkUserId: z.string(), email: z.string() })
+    .nullable()
+    .optional(),
+  departmentId: z
+    .object({ pkDepartmentId: z.string(), departmentName: z.string() })
+    .nullable()
+    .refine((v) => v !== null, { message: "Department is required" }),
 });
 
 export default function Profile() {
@@ -49,7 +45,7 @@ export default function Profile() {
       name: "",
       birthDate: undefined,
       joiningDate: undefined,
-      managerProfileId: "",
+      managerProfileId: null,
       departmentId: null,
     },
   });
@@ -57,14 +53,15 @@ export default function Profile() {
   const { mutate: createProfile, isPending } = useCreateProfile();
 
   function onSubmit(data: z.infer<typeof formSchema>) {
-    createProfile(data);
+    createProfile({
+      name: data.name,
+      birthDate: data.birthDate,
+      joiningDate: data.joiningDate,
+      departmentId: data.departmentId?.pkDepartmentId,
+      managerProfileId: data.managerProfileId?.pkUserId ?? undefined,
+    });
     form.reset();
   }
-
-  const [searchValue, setSearchValue] = useState("");
-  const { isLoading: managerLoading, data: managerData } = useUser(searchValue);
-  const { isLoading: departmentLoading, data: departmentData } =
-    useGetDepartments(searchValue);
 
   return (
     <Card className="w-full sm:max-w-xl mx-auto mt-30">
@@ -93,16 +90,15 @@ export default function Profile() {
               label={"Joining date"}
               name={"joiningDate"}
             />
-            <AsyncSingleCombobox
+            <AsyncCombobox
+              single={true}
               form={form}
               name={"departmentId"}
               label={"Department"}
               placeholder={"Select department"}
-              isLoading={departmentLoading}
-              queryRes={departmentData?.data.data}
-              valueField={"pkDepartmentId"}
-              displayField={"departmentName"}
-              onInputChange={setSearchValue}
+              fetchFunction={useGetDepartments}
+              displayKey={"departmentName"}
+              primaryKey={"pkDepartmentId"}
             />
           </FieldGroup>
           <FieldGroup>
@@ -111,16 +107,15 @@ export default function Profile() {
               label={"Date of birth"}
               name={"birthDate"}
             />
-            <AsyncSingleCombobox
+            <AsyncCombobox
+              single={true}
               form={form}
               name={"managerProfileId"}
               label={"Manager"}
               placeholder={"Select manager"}
-              isLoading={managerLoading}
-              queryRes={managerData?.data.data}
-              valueField={"pkUserId"}
-              displayField={"email"}
-              onInputChange={setSearchValue}
+              fetchFunction={useUser}
+              displayKey={"email"}
+              primaryKey={"pkUserId"}
             />
           </FieldGroup>
         </form>

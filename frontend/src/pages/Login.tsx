@@ -18,6 +18,7 @@ import { ButtonSpinner } from "@/components/Custom/ButtonSpinner";
 import { useLogin } from "@/api/queries/useAuth";
 import { useNavigate } from "react-router-dom";
 import FormField from "@/components/Custom/FormField";
+import { useAuth } from "@/context/AuthContext";
 
 const formSchema = z.object({
   email: z.email("Invalid email address"),
@@ -33,12 +34,13 @@ export default function Login() {
     },
   });
 
-  const { mutate: login, isPending, isSuccess } = useLogin();
+  const { mutate: login, isPending } = useLogin();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (isSuccess) navigate("/travels");
-  }, [isSuccess]);
+    if (user) navigate("/travels", { replace: true });
+  }, [user, navigate]);
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     login(data);

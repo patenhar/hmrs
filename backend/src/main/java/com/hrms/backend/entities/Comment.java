@@ -37,6 +37,6 @@ public class Comment extends Auditable {
     @JoinColumn(name = "fk_parent_id", referencedColumnName = "pkCommentId")
     private Comment parentComment;
 
-    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> replies = new ArrayList<>();
 }

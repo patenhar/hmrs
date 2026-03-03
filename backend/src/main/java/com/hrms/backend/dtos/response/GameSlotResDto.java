@@ -1,6 +1,5 @@
 package com.hrms.backend.dtos.response;
 
-import com.hrms.backend.entities.Game;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,5 +14,5 @@ public class GameSlotResDto {
     private LocalDate date;
     private LocalTime beginTime;
     private LocalTime endTime;
-    private Game game;
+    private GameResDto game;
 }

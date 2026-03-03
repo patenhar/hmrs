@@ -1,6 +1,5 @@
 package com.hrms.backend.dtos.response;
 
-import com.hrms.backend.entities.Permission;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,5 +11,5 @@ import java.util.UUID;
 public class RoleResDto {
     private UUID pkRoleId;
     private String roleName;
-    private List<Permission> permissions;
+    private List<PermissionResDto> permissions;
 }

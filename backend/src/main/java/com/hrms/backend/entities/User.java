@@ -1,6 +1,6 @@
 package com.hrms.backend.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -33,6 +33,49 @@ public class User extends AuditableTimestamp {
     @JoinColumn(name = "fk_role_id", referencedColumnName = "pkRoleId")
     private Role role;
 
-    @OneToMany(mappedBy = "user")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Profile profile;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserTravel> userTravels = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "author")
+    private List<Post> posts = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private List<Like> likes = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private List<Notification> notifications = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private List<JobStakeHolder> jobStakeHolders = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private List<JobShareRecord> jobShareRecords = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private List<Referral> referrals = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "uploadedBy")
+    private List<TravelDocument> uploadedDocuments = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "lastActionBy")
+    private List<Expense> actedExpenses = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "bookedBy")
+    private List<GameBooking> gameBookings = new ArrayList<>();
+
+    @JsonIgnore
+    @ManyToMany(mappedBy = "teamMembers")
+    private List<GameBooking> teamBookings = new ArrayList<>();
 }

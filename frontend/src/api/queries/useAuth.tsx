@@ -2,6 +2,19 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import authService from "../authService.tsx";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+
+export const useLogout = () => {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { setToken } = useAuth();
+  return () => {
+    setToken(null);
+    queryClient.clear();
+    navigate("/login");
+    toast.success("Logged out successfully");
+  };
+};
 
 const { register, login } = authService;
 
@@ -21,12 +34,16 @@ export const useRegister = () => {
 
 export const useLogin = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { setToken } = useAuth();
   return useMutation({
     mutationFn: login,
     onSuccess: (res) => {
-      sessionStorage.setItem("token", res.data.data.token);
+      setToken(res.data.data.token);
       queryClient.invalidateQueries({ queryKey: ["CurrentUser"] });
+      queryClient.invalidateQueries({ queryKey: ["Notifications"] });
       toast.success(res.data.message);
+      navigate("/travels");
     },
     onError: (error) => {
       toast.error("Login failed", {

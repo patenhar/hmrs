@@ -8,9 +8,11 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.UUID;
 
 @Service
@@ -46,10 +48,15 @@ public class S3Service {
                 .key(key)
                 .build();
 
-        Path tempFile = Files.createTempFile("s3download-", key);
-        s3Client.getObject(getObjectRequest, tempFile);
-
-        return Files.readAllBytes(tempFile);
+        try (ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(getObjectRequest);
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = s3Object.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+            return out.toByteArray();
+        }
     }
 
     public String deleteFile(String key) {

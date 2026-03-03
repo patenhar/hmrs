@@ -3,9 +3,7 @@ package com.hrms.backend.services;
 import com.hrms.backend.dtos.request.DocumentReqDto;
 import com.hrms.backend.dtos.request.TravelDocumentReqDto;
 import com.hrms.backend.entities.Document;
-import com.hrms.backend.entities.DocumentType;
 import com.hrms.backend.repos.DocumentRepo;
-import com.hrms.backend.repos.UserTravelRepo;
 import com.hrms.backend.services.interfaces.IDocumentService;
 import com.hrms.backend.utils.ApiResponse;
 import com.hrms.backend.utils.ResourceNotFoundException;
@@ -24,13 +22,11 @@ public class DocumentService {
     private final ModelMapper modelMapper;
     private final DocumentRepo documentRepo;
     private final S3Service s3Service;
-    private final DocumentTypeService documentTypeService;
 
-    public DocumentService(ModelMapper modelMapper, DocumentRepo documentRepo, S3Service s3Service, DocumentTypeService documentTypeService) {
+    public DocumentService(ModelMapper modelMapper, DocumentRepo documentRepo, S3Service s3Service) {
         this.modelMapper = modelMapper;
         this.documentRepo = documentRepo;
         this.s3Service = s3Service;
-        this.documentTypeService = documentTypeService;
     }
 
     @Transactional
@@ -38,7 +34,7 @@ public class DocumentService {
         String accessUrl = s3Service.uploadFile(documentReqDto.getFile());
 
         Document document = new Document();
-        document.setDocumentType(modelMapper.map(documentTypeService.findDocumentTypeById(documentReqDto.getFkDocumentTypeId()), DocumentType.class));
+        document.setDocumentType(documentReqDto.getDocumentType());
         document.setAccessUrl(accessUrl);
 
         return documentRepo.save(document);

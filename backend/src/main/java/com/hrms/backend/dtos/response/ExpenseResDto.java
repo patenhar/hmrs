@@ -1,15 +1,11 @@
 package com.hrms.backend.dtos.response;
 
-import com.hrms.backend.entities.Document;
-import com.hrms.backend.entities.ExpenseStatus;
-import com.hrms.backend.entities.ExpenseType;
-import com.hrms.backend.entities.UserTravel;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
+import com.hrms.backend.enums.ExpenseStatus;
+import com.hrms.backend.enums.ExpenseType;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -20,6 +16,9 @@ public class ExpenseResDto {
     private String description;
     private DocumentResDto document;
     private UserTravelResDto userTravel;
-    private ExpenseTypeResDto expenseType;
-    private ExpenseStatusResDto expenseStatus;
+    private ExpenseType expenseType;
+    private ExpenseStatus expenseStatus;
+    private LocalDateTime lastActionAt;
+    private UserResDto lastActionBy;
+    private String remarks;
 }

@@ -6,6 +6,7 @@ import com.hrms.backend.utils.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class TagController {
     }
 
     @PostMapping("/")
-//    @PreAuthorize("hasAuthority('MANAGE_POST')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_POST')")
     public ResponseEntity<ApiResponse<TagResDto>> createTag(@RequestParam String tagName) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse<>("Tag created successfully", tagService.createTag(tagName)));

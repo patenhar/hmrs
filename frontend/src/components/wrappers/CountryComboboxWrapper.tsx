@@ -1,24 +1,17 @@
 import { useGetCountryByName } from "@/api/queries/useCountry";
-import { useState } from "react";
-import { AsyncSingleCombobox } from "../Custom/AsyncSingleCombobox";
+import AsyncCombobox from "../Custom/AsyncCombobox";
 
 export default function CountryComboboxWrapper({ disabled, form, name }) {
-  const [searchValue, setSearchValue] = useState("");
-
-  const { isLoading: countryLoading, data: CountryData } =
-    useGetCountryByName(searchValue);
-
   return (
-    <AsyncSingleCombobox
+    <AsyncCombobox
+      single={true}
       form={form}
       name={name}
       label={"Country"}
       placeholder={"Select Country"}
-      isLoading={countryLoading}
-      queryRes={CountryData?.data.data}
-      valueField={"pkCountryId"}
-      displayField={"countryName"}
-      onInputChange={setSearchValue}
+      fetchFunction={useGetCountryByName}
+      displayKey={"countryName"}
+      primaryKey={"pkCountryId"}
     />
   );
 }

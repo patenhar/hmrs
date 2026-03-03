@@ -5,6 +5,7 @@ import com.hrms.backend.entities.Document;
 import com.hrms.backend.entities.Travel;
 import com.hrms.backend.entities.TravelDocument;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TravelDocumentRepo extends JpaRepository<TravelDocument, UUID> {
+    void deleteAllByUserTravel_PkUserTravelId(UUID userTravelId);
     @Query(value = "SELECT * " +
             "FROM documents d " +
             "INNER JOIN travel_documents td " +
@@ -21,4 +23,8 @@ public interface TravelDocumentRepo extends JpaRepository<TravelDocument, UUID> 
 
     List<TravelDocument> findTravelDocumentsByUserTravel_PkUserTravelId(UUID userTravelPkUserTravelId);
     void deleteAllByPkTravelDocumentId(UUID pkTravelDocumentId);
+
+    @Modifying
+    @Query("UPDATE TravelDocument td SET td.uploadedBy = null WHERE td.uploadedBy.pkUserId = :userId")
+    void clearUploadedByUserId(@Param("userId") UUID userId);
 }

@@ -1,11 +1,51 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import GameService from "../gameService.tsx";
+import type { GamePageParams, GameBookingPageParams } from "../gameService.tsx";
 
 import { format } from "date-fns";
 import { toast } from "sonner";
 
-const { getGameByName, getGameById, getGameSlots, bookSlot, getGameByUser } =
-  GameService;
+const {
+  getGameByName,
+  getGameById,
+  getGameSlots,
+  bookSlot,
+  getGameByUser,
+  addGame,
+  updateGame,
+  getAllGames,
+  getGamesPaginated,
+  getGameBookingsPaginated,
+} = GameService;
+
+export const useGetAllGames = () => {
+  return useQuery({
+    queryKey: ["Games"],
+    queryFn: () => getAllGames(),
+  });
+};
+
+export const useGetGamesPaginated = (params: GamePageParams) => {
+  return useQuery({
+    queryKey: ["Games", "paginated", params],
+    queryFn: () => getGamesPaginated(params),
+    placeholderData: keepPreviousData,
+  });
+};
+
+export const useGetGameBookingsPaginated = (params: GameBookingPageParams) => {
+  return useQuery({
+    queryKey: ["GameBookings", "paginated", params],
+    queryFn: () => getGameBookingsPaginated(params),
+    placeholderData: keepPreviousData,
+    enabled: !!params["user-id"],
+  });
+};
 
 export const useGetGameByName = (name: string) => {
   return useQuery({
@@ -51,6 +91,38 @@ export const useBookSlot = () => {
     },
     onError: (error) => {
       toast.error("Booking failed", {
+        description: error.message || "Something went wrong",
+      });
+    },
+  });
+};
+
+export const useAddGame = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: addGame,
+    onSuccess: (res) => {
+      toast.success(res.data.message);
+      queryClient.invalidateQueries({ queryKey: ["Games"] });
+    },
+    onError: (error) => {
+      toast.error("Failed to add game", {
+        description: error.message || "Something went wrong",
+      });
+    },
+  });
+};
+
+export const useUpdateGame = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateGame,
+    onSuccess: (res) => {
+      toast.success(res.data.message);
+      queryClient.invalidateQueries({ queryKey: ["Games"] });
+    },
+    onError: (error) => {
+      toast.error("Failed to update game", {
         description: error.message || "Something went wrong",
       });
     },

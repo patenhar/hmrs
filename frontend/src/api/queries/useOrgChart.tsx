@@ -7,5 +7,6 @@ export const useGetOrgChart = (id: string) => {
   return useQuery({
     queryKey: ["OrgChart", id],
     queryFn: () => getOrgChart(id),
+    enabled: !!id,
   });
 };

@@ -10,6 +10,7 @@ const postService = {
   deletePost: ({ id, remarks }: { id: string; remarks?: string }) =>
     axiosClient.delete(`/posts/${id}`, { data: { remarks } }),
   toggleLike: (id: string) => axiosClient.post(`/posts/${id}/like`),
+  triggerCelebrations: () => axiosClient.post("/posts/trigger-celebrations"),
 };
 
 export default postService;

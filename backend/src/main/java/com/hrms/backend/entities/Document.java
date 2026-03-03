@@ -1,12 +1,11 @@
 package com.hrms.backend.entities;
 
+import com.hrms.backend.enums.DocumentType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -20,7 +19,6 @@ public class Document extends Auditable {
     @NotBlank
     private String accessUrl;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_document_type_id", referencedColumnName = "pkDocumentTypeId")
+    @Enumerated(EnumType.STRING)
     private DocumentType documentType;
 }

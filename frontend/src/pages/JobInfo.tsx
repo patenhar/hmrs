@@ -6,7 +6,6 @@ import {
   CardDescription,
   CardContent,
   CardAction,
-  CardFooter,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useNavigate, useParams } from "react-router-dom";
@@ -18,10 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Upload } from "lucide-react";
-import { AddJobForm } from "@/components/Custom/AddJobForm";
-import ButtonLink from "@/components/Custom/ButtonLink";
 import { Button } from "@/components/ui/button";
+import ButtonLink from "@/components/Custom/ButtonLink";
+import Can from "@/components/Custom/Can";
 
 export default function JobInfo() {
   const { jobId } = useParams();
@@ -46,14 +44,16 @@ export default function JobInfo() {
           </CardTitle>
           <CardDescription>{Job.description}</CardDescription>
           <CardAction>
-            <Button
-              variant={"default"}
-              onClick={() => {
-                navigate("update");
-              }}
-            >
-              Update Job
-            </Button>
+            <Can authority={"MANAGE_ALL_JOB"}>
+              <Button
+                variant={"default"}
+                onClick={() => {
+                  navigate("update");
+                }}
+              >
+                Update Job
+              </Button>
+            </Can>
           </CardAction>
         </CardHeader>
         <Separator />
@@ -61,9 +61,14 @@ export default function JobInfo() {
           <div className="flex items-center gap-1 w-full">
             <p className="text-muted-foreground text-sm">HR Mail:</p>
             <p className="leading-7">
-              {Job?.jd?.accessUrl
-                ? new URL(Job?.jd?.accessUrl).pathname.split("/").pop()
-                : ""}
+              <ButtonLink
+                to={Job?.jd?.accessUrl}
+                text={
+                  Job?.jd?.accessUrl
+                    ? new URL(Job?.jd?.accessUrl).pathname.split("/").pop()
+                    : "No Access URL"
+                }
+              />
             </p>
           </div>
           <div className="flex flex-col items-center gap-1 w-full mt-4">
@@ -85,9 +90,7 @@ export default function JobInfo() {
                     <TableCell>{idx + 1}</TableCell>
                     <TableCell>{tu.user?.profile?.name}</TableCell>
                     <TableCell>{tu.user?.email}</TableCell>
-                    <TableCell>
-                      {tu.jobStakeHolderType.jobStakeHolderTypeName}
-                    </TableCell>
+                    <TableCell>{tu.jobStakeHolderType}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

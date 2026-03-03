@@ -23,17 +23,26 @@ import { AddTravelForm } from "./components/Custom/AddTravelForm.tsx";
 import { UpdateTravelForm } from "./components/Custom/UpdateTravelForm.tsx";
 import { AddExpenseForm } from "./components/Custom/AddExpenseForm.tsx";
 import JobInfo from "./pages/JobInfo.tsx";
+import ProfileInfo from "./pages/ProfileInfo.tsx";
+import { UpdateJobForm } from "./components/Custom/UpdateJobForm.tsx";
 import { GameBookingForm } from "./components/Custom/GameBookingForm.tsx";
+import { AddGame } from "./components/Custom/AddGame.jsx";
+import { UpdateGameForm } from "./components/Custom/UpdateGameForm.tsx";
 import Game from "./pages/Game.tsx";
 import SocialFeed from "./pages/SocialFeed.tsx";
 import { AddPostForm } from "./components/Custom/AddPostForm.tsx";
 import { EditPostForm } from "./components/Custom/EditPostForm.tsx";
+import PostInfo from "./pages/PostInfo.tsx";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "./context/AuthContext.tsx";
 import ProtectedRoute from "./components/Custom/ProtectedRoute.tsx";
 import { Unauthorized } from "./pages/Unauthorized.tsx";
 import { NotFound } from "./pages/NotFound.tsx";
 import { ErrorFallback } from "./pages/ErrorFallback.tsx";
+import GameBooking from "./pages/GameBooking.tsx";
+import Referral from "./pages/Referral.tsx";
+import Users from "./pages/Users.tsx";
+import RolesPermissions from "./pages/RolesPermissions.tsx";
 
 const ErrorBoundaryLayout = () => (
   <ErrorBoundary FallbackComponent={ErrorFallback}>
@@ -66,7 +75,7 @@ const router = createBrowserRouter([
             element: <Login />,
           },
           {
-            element: <ProtectedRoute required={"ADD_USER"} />,
+            element: <ProtectedRoute required={"MANAGE_ALL_USER"} />,
             children: [
               {
                 path: "register",
@@ -75,7 +84,7 @@ const router = createBrowserRouter([
             ],
           },
           {
-            element: <ProtectedRoute required={"VIEW_USER"} />,
+            element: <ProtectedRoute required={"MANAGE_ALL_USER"} />,
             children: [
               {
                 path: "users",
@@ -83,10 +92,10 @@ const router = createBrowserRouter([
                 children: [
                   {
                     index: true,
-                    element: <div>User List</div>,
+                    element: <Users />,
                   },
                   {
-                    element: <ProtectedRoute required={"ADD_PROFILE"} />,
+                    element: <ProtectedRoute required={"MANAGE_ALL_PROFILE"} />,
                     children: [
                       {
                         path: ":userId/profile/create",
@@ -99,7 +108,21 @@ const router = createBrowserRouter([
             ],
           },
           {
-            element: <ProtectedRoute required={"VIEW_PROFILE"} />,
+            path: "roles-permissions",
+            element: <ProtectedRoute required={"MANAGE_ALL_USER"} />,
+            children: [
+              {
+                index: true,
+                element: <RolesPermissions />,
+              },
+            ],
+          },
+          {
+            element: (
+              <ProtectedRoute
+                required={["VIEW_PROFILE", "MANAGE_ALL_PROFILE"]}
+              />
+            ),
             children: [
               {
                 path: "users/:userId/profile",
@@ -107,9 +130,12 @@ const router = createBrowserRouter([
               },
             ],
           },
-
           {
-            element: <ProtectedRoute required={"VIEW_ORGCHART"} />,
+            element: (
+              <ProtectedRoute
+                required={["VIEW_ORGCHART", "MANAGE_ALL_ORGCHART"]}
+              />
+            ),
             children: [
               {
                 path: "profile/:profileId/org-chart",
@@ -118,15 +144,30 @@ const router = createBrowserRouter([
             ],
           },
           {
+            element: (
+              <ProtectedRoute
+                required={["VIEW_PROFILE", "MANAGE_ALL_PROFILE"]}
+              />
+            ),
+            children: [
+              {
+                path: "profiles/:profileId",
+                element: <ProfileInfo />,
+              },
+            ],
+          },
+          {
             path: "travels",
-            element: <ProtectedRoute required={"VIEW_TRAVEL"} />,
+            element: (
+              <ProtectedRoute required={["VIEW_TRAVEL", "MANAGE_ALL_TRAVEL"]} />
+            ),
             children: [
               {
                 index: true,
                 element: <Travel />,
               },
               {
-                element: <ProtectedRoute required={"ADD_TRAVEL"} />,
+                element: <ProtectedRoute required={"MANAGE_ALL_TRAVEL"} />,
                 children: [
                   {
                     path: "add",
@@ -143,7 +184,7 @@ const router = createBrowserRouter([
                     element: <TravelInfo />,
                   },
                   {
-                    element: <ProtectedRoute required={"UPDATE_TRAVEL"} />,
+                    element: <ProtectedRoute required={"MANAGE_ALL_TRAVEL"} />,
                     children: [
                       {
                         path: "update",
@@ -155,14 +196,22 @@ const router = createBrowserRouter([
               },
               {
                 path: "users/:userTravelId/expenses",
-                element: <ProtectedRoute required={"VIEW_EXPENSE"} />,
+                element: (
+                  <ProtectedRoute
+                    required={["VIEW_EXPENSE", "MANAGE_ALL_EXPENSE"]}
+                  />
+                ),
                 children: [
                   {
                     index: true,
                     element: <Expense />,
                   },
                   {
-                    element: <ProtectedRoute required={"ADD_EXPENSE"} />,
+                    element: (
+                      <ProtectedRoute
+                        required={["ADD_EXPENSE", "MANAGE_ALL_EXPENSE"]}
+                      />
+                    ),
                     children: [
                       {
                         path: "add",
@@ -174,14 +223,22 @@ const router = createBrowserRouter([
               },
               {
                 path: "users/:userTravelId/documents",
-                element: <ProtectedRoute required={"VIEW_DOCUMENT"} />,
+                element: (
+                  <ProtectedRoute
+                    required={["VIEW_DOCUMENT", "MANAGE_ALL_DOCUMENT"]}
+                  />
+                ),
                 children: [
                   {
                     index: true,
                     element: <UserTravelDocuments />,
                   },
                   {
-                    element: <ProtectedRoute required={"ADD_DOCUMENT"} />,
+                    element: (
+                      <ProtectedRoute
+                        required={["ADD_DOCUMENT", "MANAGE_ALL_DOCUMENT"]}
+                      />
+                    ),
                     children: [
                       {
                         path: "upload",
@@ -195,14 +252,16 @@ const router = createBrowserRouter([
           },
           {
             path: "jobs",
-            element: <ProtectedRoute required={"VIEW_JOB"} />,
+            element: (
+              <ProtectedRoute required={["VIEW_JOB", "MANAGE_ALL_JOB"]} />
+            ),
             children: [
               {
                 index: true,
                 element: <Job />,
               },
               {
-                element: <ProtectedRoute required={"ADD_JOB"} />,
+                element: <ProtectedRoute required={"MANAGE_ALL_JOB"} />,
                 children: [
                   {
                     path: "add",
@@ -219,6 +278,10 @@ const router = createBrowserRouter([
                     element: <JobInfo />,
                   },
                   {
+                    path: "update",
+                    element: <UpdateJobForm />,
+                  },
+                  {
                     path: "share",
                     element: <ShareJobForm />,
                   },
@@ -231,15 +294,71 @@ const router = createBrowserRouter([
             ],
           },
           {
-            path: "games/bookings",
-            element: <ProtectedRoute required={"VIEW_BOOKINGS"} />,
+            path: "referrals",
+            element: (
+              <ProtectedRoute required={["REFER_JOB", "MANAGE_ALL_REFERRAL"]} />
+            ),
+            children: [
+              {
+                index: true,
+                element: <Referral />,
+              },
+            ],
+          },
+          {
+            path: "games",
+            element: (
+              <ProtectedRoute required={["VIEW_GAME", "MANAGE_ALL_GAME"]} />
+            ),
             children: [
               {
                 index: true,
                 element: <Game />,
               },
               {
-                element: <ProtectedRoute required={"ADD_BOOKING"} />,
+                element: <ProtectedRoute required={"MANAGE_ALL_GAME"} />,
+                children: [
+                  {
+                    path: "add",
+                    element: <AddGame />,
+                  },
+                ],
+              },
+              {
+                path: ":gameId",
+                element: <Outlet />,
+                children: [
+                  {
+                    element: <ProtectedRoute required={"MANAGE_ALL_GAME"} />,
+                    children: [
+                      {
+                        path: "update",
+                        element: <UpdateGameForm />,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            path: "games/bookings",
+            element: (
+              <ProtectedRoute
+                required={["VIEW_BOOKING", "MANAGE_ALL_BOOKING"]}
+              />
+            ),
+            children: [
+              {
+                index: true,
+                element: <GameBooking />,
+              },
+              {
+                element: (
+                  <ProtectedRoute
+                    required={["ADD_BOOKING", "MANAGE_ALL_BOOKING"]}
+                  />
+                ),
                 children: [
                   {
                     path: "add",
@@ -251,14 +370,18 @@ const router = createBrowserRouter([
           },
           {
             path: "social/posts",
-            element: <ProtectedRoute required={"VIEW_POST"} />,
+            element: (
+              <ProtectedRoute required={["VIEW_POST", "MANAGE_ALL_POST"]} />
+            ),
             children: [
               {
                 index: true,
                 element: <SocialFeed />,
               },
               {
-                element: <ProtectedRoute required={"ADD_POST"} />,
+                element: (
+                  <ProtectedRoute required={["ADD_POST", "MANAGE_ALL_POST"]} />
+                ),
                 children: [
                   {
                     path: "add",
@@ -267,8 +390,16 @@ const router = createBrowserRouter([
                 ],
               },
               {
+                path: ":postId",
+                element: <PostInfo />,
+              },
+              {
                 path: ":postId/edit",
-                element: <ProtectedRoute required={"UPDATE_POST"} />,
+                element: (
+                  <ProtectedRoute
+                    required={["MANAGE_POST", "MANAGE_ALL_POST"]}
+                  />
+                ),
                 children: [
                   {
                     index: true,

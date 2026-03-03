@@ -1,6 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import * as z from "zod";
+import { useState, KeyboardEvent, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import postVisibilityService from "@/api/postVisibilityService";
+import { useCreatePost } from "@/api/queries/usePost";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,29 +14,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { FieldGroup } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldLabel,
+  FieldGroup,
+} from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import FormField from "@/components/Custom/FormField";
 import { ButtonSpinner } from "@/components/Custom/ButtonSpinner";
 import { useNavigate } from "react-router-dom";
-import { useCreatePost } from "@/api/queries/usePost";
-import { useGetAllTags } from "@/api/queries/useTag";
-import { useQuery } from "@tanstack/react-query";
-import postVisibilityService from "@/api/postVisibilityService";
-import { useEffect } from "react";
+import { X } from "lucide-react";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
-  tagIds: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
   visibilityId: z.string().min(1, "Visibility is required"),
 });
 
 export function AddPostForm() {
   const navigate = useNavigate();
-  const { data: tagsData } = useGetAllTags();
-  const tags = tagsData?.data.data ?? [];
+  const [tagInput, setTagInput] = useState("");
 
   const { data: visibilityData } = useQuery({
     queryKey: ["PostVisibility"],
@@ -42,24 +46,36 @@ export function AddPostForm() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      tagIds: [],
-      visibilityId: "",
-    },
+    defaultValues: { title: "", description: "", tags: [], visibilityId: "" },
   });
 
-  // Set default visibility to "ALL_EMPLOYEES" once loaded
   useEffect(() => {
     if (visibilities.length > 0 && !form.getValues("visibilityId")) {
       const allEmployees = visibilities.find(
         (v) => v.visibility === "ALL_EMPLOYEES",
       );
-      if (allEmployees)
-        form.setValue("visibilityId", allEmployees.pkPostVisibilityId);
+      const target = allEmployees ?? visibilities[0];
+      form.setValue("visibilityId", target.pkPostVisibilityId);
     }
   }, [visibilities]);
+
+  function addTag(raw: string) {
+    const name = raw.trim().replace(/^#+/, "").toLowerCase();
+    if (!name) return;
+    const current = form.getValues("tags") ?? [];
+    if (!current.includes(name)) form.setValue("tags", [...current, name]);
+    setTagInput("");
+  }
+
+  function handleTagKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter" || e.key === "," || e.key === " ") {
+      e.preventDefault();
+      addTag(tagInput);
+    } else if (e.key === "Backspace" && tagInput === "") {
+      const current = form.getValues("tags") ?? [];
+      form.setValue("tags", current.slice(0, -1));
+    }
+  }
 
   const { mutate: createPost, isPending } = useCreatePost();
 
@@ -68,7 +84,7 @@ export function AddPostForm() {
       {
         title: data.title,
         description: data.description,
-        tagIds: data.tagIds ?? [],
+        tags: data.tags ?? [],
         visibilityId: data.visibilityId,
       },
       { onSuccess: () => navigate(-1) },
@@ -114,43 +130,50 @@ export function AddPostForm() {
               )}
             />
 
-            {tags.length > 0 && (
-              <Controller
-                name="tagIds"
-                control={form.control}
-                render={({ field }) => (
-                  <Field>
-                    <FieldLabel>Tags</FieldLabel>
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map((tag) => {
-                        const selected = field.value?.includes(tag.pkTagId);
-                        return (
-                          <button
-                            key={tag.pkTagId}
-                            type="button"
-                            onClick={() => {
-                              const current = field.value ?? [];
-                              field.onChange(
-                                selected
-                                  ? current.filter((id) => id !== tag.pkTagId)
-                                  : [...current, tag.pkTagId],
-                              );
-                            }}
-                            className={`px-3 py-1 rounded-full text-xs border transition-colors ${
-                              selected
-                                ? "bg-blue-600 text-white border-blue-600"
-                                : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
-                            }`}
-                          >
-                            {tag.tag}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </Field>
-                )}
-              />
-            )}
+            <Controller
+              name="tags"
+              control={form.control}
+              render={({ field }) => (
+                <Field>
+                  <FieldLabel>Tags</FieldLabel>
+                  <div className="flex flex-wrap items-center gap-1.5 min-h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-within:ring-2 focus-within:ring-ring">
+                    {(field.value ?? []).map((tag) => (
+                      <span
+                        key={tag}
+                        className="flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-medium px-2 py-0.5 rounded-full"
+                      >
+                        #{tag}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            field.onChange(
+                              (field.value ?? []).filter((t) => t !== tag),
+                            )
+                          }
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                    <Input
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={handleTagKeyDown}
+                      onBlur={() => addTag(tagInput)}
+                      placeholder={
+                        (field.value ?? []).length === 0
+                          ? "#cricket, #teamwork..."
+                          : ""
+                      }
+                      className="border-0 p-0 h-auto flex-1 min-w-[100px] focus-visible:ring-0 shadow-none"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Press Enter, comma, or space to add a tag
+                  </p>
+                </Field>
+              )}
+            />
           </FieldGroup>
 
           <DialogFooter>

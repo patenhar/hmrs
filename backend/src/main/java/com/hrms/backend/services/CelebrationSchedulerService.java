@@ -27,8 +27,9 @@ public class CelebrationSchedulerService {
     }
 
     @Scheduled(cron = "0 0 0 * * *")
-    public void generateCelebrationPosts() {
+    public int generateCelebrationPosts() {
         LocalDate today = LocalDate.now();
+        int created = 0;
 
         UUID birthdayTagId = tagRepo.findByTagIgnoreCase("Birthday")
                 .map(Tag::getPkTagId).orElse(null);
@@ -43,18 +44,21 @@ public class CelebrationSchedulerService {
                     && profile.getBirthDate().getMonth() == today.getMonth()
                     && profile.getBirthDate().getDayOfMonth() == today.getDayOfMonth()) {
 
-                String title = "Happy Birthday, " + profile.getName() + "!";
-                String description = "Today is " + profile.getName()
-                        + "'s birthday! Wishing them a wonderful day. \uD83C\uDF82";
-
-                List<UUID> tags = birthdayTagId != null ? List.of(birthdayTagId) : List.of();
-
-                try {
-                    postService.createSystemPost(
-                            profile.getUser().getPkUserId(), title, description, tags);
-                    log.info("Birthday post created for {}", profile.getName());
-                } catch (Exception e) {
-                    log.error("Failed to create birthday post for {}: {}", profile.getName(), e.getMessage());
+                if (profile.getUser() == null) {
+                    log.warn("Skipping birthday post for {} — no linked user", profile.getName());
+                } else {
+                    String title = "Happy Birthday, " + profile.getName() + "!";
+                    String description = "Today is " + profile.getName()
+                            + "'s birthday! Wishing them a wonderful day.";
+                    List<UUID> tags = birthdayTagId != null ? List.of(birthdayTagId) : List.of();
+                    try {
+                        postService.createSystemPost(
+                                profile.getUser().getPkUserId(), title, description, tags);
+                        log.info("Birthday post created for {}", profile.getName());
+                        created++;
+                    } catch (Exception e) {
+                        log.error("Failed to create birthday post for {}: {}", profile.getName(), e.getMessage());
+                    }
                 }
             }
 
@@ -64,22 +68,28 @@ public class CelebrationSchedulerService {
                     && profile.getJoiningDate().getDayOfMonth() == today.getDayOfMonth()
                     && profile.getJoiningDate().getYear() != today.getYear()) {
 
-                int years = today.getYear() - profile.getJoiningDate().getYear();
-                String title = "Work Anniversary: " + profile.getName();
-                String description = profile.getName() + " completes " + years
-                        + (years == 1 ? " year" : " years")
-                        + " at the organization. Congratulations! \uD83C\uDFC6";
-
-                List<UUID> tags = anniversaryTagId != null ? List.of(anniversaryTagId) : List.of();
-
-                try {
-                    postService.createSystemPost(
-                            profile.getUser().getPkUserId(), title, description, tags);
-                    log.info("Anniversary post created for {} ({} years)", profile.getName(), years);
-                } catch (Exception e) {
-                    log.error("Failed to create anniversary post for {}: {}", profile.getName(), e.getMessage());
+                if (profile.getUser() == null) {
+                    log.warn("Skipping anniversary post for {} — no linked user", profile.getName());
+                } else {
+                    int years = today.getYear() - profile.getJoiningDate().getYear();
+                    String title = "Work Anniversary: " + profile.getName();
+                    String description = profile.getName() + " completes " + years
+                            + (years == 1 ? " year" : " years")
+                            + " at the organization. Congratulations!";
+                    List<UUID> tags = anniversaryTagId != null ? List.of(anniversaryTagId) : List.of();
+                    try {
+                        postService.createSystemPost(
+                                profile.getUser().getPkUserId(), title, description, tags);
+                        log.info("Anniversary post created for {} ({} years)", profile.getName(), years);
+                        created++;
+                    } catch (Exception e) {
+                        log.error("Failed to create anniversary post for {}: {}", profile.getName(), e.getMessage());
+                    }
                 }
             }
         }
+
+        log.info("Celebration post run complete: {} post(s) created for {}", created, today);
+        return created;
     }
 }

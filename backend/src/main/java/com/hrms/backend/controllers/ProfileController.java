@@ -28,31 +28,37 @@ public class ProfileController {
     }
 
     @GetMapping("/")
-//    @PreAuthorize("hasAuthority('VIEW_USER')")
+    @PreAuthorize("hasAuthority('VIEW_PROFILE') or hasAuthority('MANAGE_ALL_PROFILE')")
     public ResponseEntity<ApiResponse<List<ProfileResDto>>> getAllProfiles() {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("All profiles fetched successfully", profileService.getAllProfiles()));
     }
 
     @GetMapping("/{id}")
-//    @PreAuthorize("hasAuthority('VIEW_USER')")
+    @PreAuthorize("hasAuthority('VIEW_PROFILE') or hasAuthority('MANAGE_ALL_PROFILE')")
     public ResponseEntity<ApiResponse<ProfileResDto>> getProfileById(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Profile fetched successfully", profileService.getProfileById(id)));
     }
 
+    @GetMapping("/users/{userId}")
+    @PreAuthorize("hasAuthority('VIEW_PROFILE') or hasAuthority('MANAGE_ALL_PROFILE')")
+    public ResponseEntity<ApiResponse<ProfileResDto>> getProfileByUserId(@PathVariable UUID userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Profile fetched successfully", profileService.getProfileByUserId(userId)));
+    }
+
     @PostMapping("/")
-//    @PreAuthorize("hasAuthority('ADD_ROLE')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_PROFILE')")
     public ResponseEntity<ApiResponse<ProfileResDto>> addProfile(@RequestBody @Validated(OnCreate.class) ProfileReqDto profileReqDto) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Profile added successfully", profileService.addProfile(profileReqDto)));
     }
 
     @PatchMapping("/{id}")
-//    @PreAuthorize("hasAuthority('MANAGE_USER')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_PROFILE') or hasAuthority('UPDATE_OWN_PROFILE')")
     public ResponseEntity<ApiResponse<ProfileResDto>> updateProfile(@PathVariable UUID id, @RequestBody @Validated(OnUpdate.class) ProfileReqDto profileReqDto) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Profile updated successfully", profileService.updateProfile(id, profileReqDto)));
     }
 
     @DeleteMapping("/{id}")
-//    @PreAuthorize("hasAuthority('MANAGE_USER')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_PROFILE')")
     public ResponseEntity<ApiResponse<String>> deleteProfile(@PathVariable UUID id) {
         String res = "Profile not deleted";
         if (profileService.deleteProfile(id)){

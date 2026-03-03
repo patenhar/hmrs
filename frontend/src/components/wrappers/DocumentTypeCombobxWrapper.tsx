@@ -1,23 +1,17 @@
-import { useState } from "react";
-import { AsyncSingleCombobox } from "../Custom/AsyncSingleCombobox";
+import AsyncCombobox from "../Custom/AsyncCombobox";
 import { useGetDocumentTypes } from "@/api/queries/useDocument";
 
 export default function DocumentTypeComboboxWrapper({ form, name }) {
-  const [searchValue, setSearchValue] = useState("");
-
-  const { isLoading, data } = useGetDocumentTypes(searchValue);
-
   return (
-    <AsyncSingleCombobox
+    <AsyncCombobox
+      single={true}
       form={form}
       name={name}
       label={"Document type"}
       placeholder={"Select document type"}
-      isLoading={isLoading}
-      queryRes={data?.data.data}
-      valueField={"pkDocumentTypeId"}
-      displayField={"documentTypeName"}
-      onInputChange={setSearchValue}
+      fetchFunction={useGetDocumentTypes}
+      displayKey={"documentTypeName"}
+      primaryKey={"pkDocumentTypeId"}
     />
   );
 }

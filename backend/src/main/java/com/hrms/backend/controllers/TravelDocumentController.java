@@ -30,19 +30,19 @@ public class TravelDocumentController {
     }
 
     @GetMapping("/{userTravelId}/documents")
-//    @PreAuthorize("hasAuthority('VIEW_USER')")
+    @PreAuthorize("hasAuthority('VIEW_DOCUMENT') or hasAuthority('MANAGE_ALL_DOCUMENT')")
     public ResponseEntity<ApiResponse<List<TravelDocumentResDto>>> getAllTravelDocuments(@PathVariable UUID userTravelId) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("All travel documents fetched successfully", travelDocumentService.getUserTravelDocument(userTravelId)));
     }
 
     @PostMapping(value = "/{userTravelId}/documents/upload", consumes = "multipart/form-data")
-//    @PreAuthorize("hasAuthority('ADD_ROLE')")
+    @PreAuthorize("hasAuthority('ADD_DOCUMENT') or hasAuthority('MANAGE_ALL_DOCUMENT')")
     public ResponseEntity<ApiResponse<TravelDocumentResDto>> addTravelDocument(@PathVariable UUID userTravelId, @Validated(OnCreate.class) @ModelAttribute TravelDocumentReqDto travelDocumentReqDto) throws IOException {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Travel document uploaded successfully", travelDocumentService.uploadTravelDocument(travelDocumentReqDto)));
     }
 
     @DeleteMapping("/{userTravelId}/documents")
-//    @PreAuthorize("hasAuthority('MANAGE_USER')")
+    @PreAuthorize("hasAuthority('MANAGE_DOCUMENT') or hasAuthority('MANAGE_ALL_DOCUMENT')")
     public ResponseEntity<ApiResponse<String>> deleteTravelDocument(@PathVariable UUID userTravelId) {
         travelDocumentService.deleteTravelDocument(userTravelId);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("TravelDocument deleted successfully", null ));

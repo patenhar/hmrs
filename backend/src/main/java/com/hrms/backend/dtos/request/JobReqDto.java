@@ -20,7 +20,7 @@ public class JobReqDto {
     @NotBlank(message = "Description is required", groups = {OnCreate.class, OnUpdate.class})
     private String description;
 
-    @NotNull(message = "JD is required", groups = {OnCreate.class, OnUpdate.class})
+    @NotNull(message = "JD is required", groups = {OnCreate.class})
     @Valid
     private DocumentReqDto documentReqDto;
 

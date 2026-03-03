@@ -11,6 +11,7 @@ import { formatDistanceToNow } from "date-fns";
 interface Props {
   postId: string;
   comments: CommentResDto[];
+  defaultOpen?: boolean;
 }
 
 function CommentItem({
@@ -136,9 +137,13 @@ function CommentItem({
   );
 }
 
-export default function CommentSection({ postId, comments }: Props) {
+export default function CommentSection({
+  postId,
+  comments,
+  defaultOpen,
+}: Props) {
   const { user } = useAuth();
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(defaultOpen ?? false);
   const [newComment, setNewComment] = useState("");
   const { mutate: addComment, isPending } = useAddComment(postId);
 

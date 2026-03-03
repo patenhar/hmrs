@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import * as z from "zod";
+import type { MouseEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,12 +12,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { FieldGroup } from "@/components/ui/field";
 import FormField from "@/components/Custom/FormField";
 import { ButtonSpinner } from "@/components/Custom/ButtonSpinner";
-import { useState } from "react";
+import { useRef } from "react";
 import {
   Table,
   TableBody,
@@ -27,67 +26,99 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Trash } from "lucide-react";
-import { AsyncSingleCombobox } from "./AsyncSingleCombobox";
-import { GetUserById, useUser } from "@/api/queries/useUser";
+import { useUser } from "@/api/queries/useUser";
 import { DatePickerWithRange } from "./DatePickerWithRange";
-import { useRegister } from "@/api/queries/useAuth";
 import CityComboboxWrapper from "../wrappers/CityComboboxWrapper";
-import CountryComboboxWrapper from "../wrappers/CountryComboboxWrapper";
+import { useGetCountryByName } from "@/api/queries/useCountry";
 import { useCreateTravel, useUpdateTravel } from "@/api/queries/useTravel.ts";
 import { useNavigate } from "react-router-dom";
-import { AsyncMultiCombobox } from "./AsyncMultiCombobox";
+import AsyncCombobox from "./AsyncCombobox";
 
-const formSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
-  maxGrantPerDay: z.coerce.number().min(1, "Grant cannot be zero"),
-  hrMail: z.email("Invalid email format"),
-  userIds: z.array(z.string()).min(1, "At least one user is required"),
-  destinations: z
-    .array(
-      z.object({
-        addressLine1: z.string().min(1, "Address line 1 is required"),
-        addressLine2: z.string().min(1, "Address line 2 is required"),
-        countryId: z.string().min(1, "Country is required"),
-        cityId: z.string().min(1, "City is required"),
-      }),
-    )
-    .min(1, "At least one destination is required"),
-  dateRange: z.object({
-    from: z
-      .date("Travel date is required")
-      .min(new Date(), "Travel date must be in the future"),
-    to: z
-      .date("Return date is required")
-      .min(new Date(), "Return date must be in the future"),
-  }),
-  // .refine(
-  //   (object) => {
-  //     return !object.from || !object.to ? false : true;
-  //   },
-  //   { message: "Date range is required", path: ["dateRange"] },
-  // ),
-});
+const getFormSchema = (isUpdate: boolean) =>
+  z.object({
+    title: z.string().min(1, "Title is required"),
+    description: z.string().min(1, "Description is required"),
+    maxGrantPerDay: z.coerce.number().min(1, "Grant cannot be zero"),
+    hrMail: z.object({
+      email: z.email("Invalid email address"),
+    }),
+    userIds: z
+      .array(
+        z.object({
+          pkUserId: z.string().min(1, "Invalid user ID"),
+        }),
+      )
+      .min(1, "At least one user is required"),
+    destinations: z
+      .array(
+        z.object({
+          addressLine1: z.string().min(1, "Address line 1 is required"),
+          addressLine2: z.string().min(1, "Address line 2 is required"),
+          countryId: z
+            .object({ pkCountryId: z.string(), countryName: z.string() })
+            .nullable(),
+          cityId: z
+            .object({ pkCityId: z.string(), cityName: z.string() })
+            .nullable(),
+        }),
+      )
+      .min(1, "At least one destination is required"),
+    dateRange: z.object({
+      from: isUpdate
+        ? z.date()
+        : z.date().min(new Date(), "Travel date must be in the future"),
+      to: isUpdate
+        ? z.date()
+        : z.date().min(new Date(), "Return date must be in the future"),
+    }),
+  });
 
 type props = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   currentData?: any;
   isUpdate?: boolean;
 };
 
-export function AddTravelForm({ currentData, isUpdate = false }: props) {
+export function AddTravelForm({
+  currentData,
+  isUpdate = false,
+}: Readonly<props>) {
+  const formSchema = getFormSchema(isUpdate);
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(formSchema) as any,
     defaultValues: currentData
       ? {
           title: currentData.title,
           description: currentData.description,
           maxGrantPerDay: currentData.maxGrantPerDay,
           hrMail: currentData.hrMail,
-          destinations: currentData.destinations,
-          userIds: currentData.userTravels.map((ut) => ut.user.pkUserId),
+          destinations:
+            currentData.destinations?.map((d: any) => ({
+              addressLine1: d.addressLine1,
+              addressLine2: d.addressLine2,
+              cityId: d.city
+                ? { pkCityId: d.city.pkCityId, cityName: d.city.cityName }
+                : null,
+              countryId: d.city?.country
+                ? {
+                    pkCountryId: d.city.country.pkCountryId,
+                    countryName: d.city.country.countryName,
+                  }
+                : null,
+            })) ?? [],
+          userIds: currentData.userTravels.map((ut: any) => ({
+            pkUserId: ut.user.pkUserId,
+            email: ut.user.email,
+            profile: ut.user.profile,
+          })),
           dateRange: {
-            from: currentData.travelDate,
-            to: currentData.returnDate,
+            from: currentData.travelDate
+              ? new Date(currentData.travelDate)
+              : undefined,
+            to: currentData.returnDate
+              ? new Date(currentData.returnDate)
+              : undefined,
           },
         }
       : {
@@ -99,8 +130,8 @@ export function AddTravelForm({ currentData, isUpdate = false }: props) {
             {
               addressLine1: "",
               addressLine2: "",
-              cityId: "",
-              countryId: "",
+              cityId: null,
+              countryId: null,
             },
           ],
           userIds: [],
@@ -114,32 +145,42 @@ export function AddTravelForm({ currentData, isUpdate = false }: props) {
   const { mutate: createTravel, isPending: addPending } = useCreateTravel();
   const { mutate: updateTravel, isPending: updatePending } = useUpdateTravel();
 
-  var isPending = false;
+  const isPending = isUpdate ? updatePending : addPending;
+
   function onSubmit(data: z.infer<typeof formSchema>) {
+    console.log(data);
     const payload = {
       title: data.title,
       description: data.description,
       maxGrantPerDay: data.maxGrantPerDay,
-      hrMail: data.hrMail,
+      hrMail: data.hrMail.email,
       destinations: data.destinations.map((d) => {
         return {
           addressLine1: d.addressLine1,
           addressLine2: d.addressLine2,
-          cityId: d.cityId,
+          cityId: d.cityId?.pkCityId,
         };
       }),
-      userIds: data.userIds,
+      userIds: data.userIds.map((u) => u.pkUserId),
       travelDate: data.dateRange.from,
       returnDate: data.dateRange.to,
     };
+    console.log(payload);
     if (isUpdate && currentData?.pkTravelId) {
-      isPending = updatePending;
-
-      updateTravel({ travelId: currentData.pkTravelId, ...payload });
+      updateTravel(
+        { travelId: currentData.pkTravelId, ...payload },
+        {
+          onSuccess: () => {
+            navigate(-1);
+          },
+        },
+      );
     } else {
-      isPending = addPending;
-
-      createTravel(payload);
+      createTravel(payload, {
+        onSuccess: () => {
+          navigate(-1);
+        },
+      });
     }
   }
 
@@ -148,36 +189,36 @@ export function AddTravelForm({ currentData, isUpdate = false }: props) {
     name: "destinations",
   });
 
-  const { append: appendUser, remove: removeUser } = useFieldArray({
+  const { remove: removeUser } = useFieldArray({
     control: form.control,
     name: "userIds",
   });
 
-  const addAddress = (e) => {
-    event?.preventDefault();
-    append({ addressLine1: "", addressLine2: "", countryId: "", cityId: "" });
+  const addAddress = (e: MouseEvent) => {
+    e.preventDefault();
+    append({
+      addressLine1: "",
+      addressLine2: "",
+      countryId: null,
+      cityId: null,
+    });
   };
 
-  const [searchValue, setSearchValue] = useState("");
-
-  const { isLoading: userLoading, data: userData } = useUser(searchValue);
-
-  const users = userData?.data?.data ?? [];
-  const userIds = form.watch("userIds") ?? [];
-
+  const selectedValuesRef = useRef<{ updateSelectedValues: () => void } | null>(
+    null,
+  );
   const navigate = useNavigate();
 
   return (
     <Dialog
       open={true}
       onOpenChange={(open) => {
-        if (!open) navigate(-1);
+        if (!open) {
+          navigate(-1);
+        }
       }}
     >
-      {/* <DialogTrigger asChild>
-        <Button variant="default">Add Travel</Button>
-      </DialogTrigger> */}
-      <DialogContent className="w-full max-w-[90vw] lg:max-w-4xl">
+      <DialogContent className="w-full max-w-[90vw] lg:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Add Travel</DialogTitle>
           <DialogDescription>
@@ -187,60 +228,82 @@ export function AddTravelForm({ currentData, isUpdate = false }: props) {
         <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
           <div className="no-scrollbar -mx-4 max-h-[50vh] overflow-y-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FieldGroup className="space-y-4">
-                <FormField
-                  form={form}
-                  name={"title"}
-                  label={"Title"}
-                  type="text"
-                  placeholder={"Title"}
-                />
-                <FormField
+              <FormField
+                form={form}
+                name={"title"}
+                label={"Title"}
+                type="text"
+                placeholder={"Title"}
+              />
+              <FormField
+                form={form}
+                name={"description"}
+                label={"Description"}
+                type="text"
+                placeholder={"Description"}
+              />
+              <FormField
+                form={form}
+                name={"maxGrantPerDay"}
+                label={"Maximum Grant Per Day"}
+                type="number"
+                placeholder={"10000"}
+              />
+              <DatePickerWithRange
+                form={form}
+                label={"Date range"}
+                name={"dateRange"}
+              />
+              <AsyncCombobox
+                single={true}
+                form={form}
+                name={"hrMail"}
+                label={"HR Mail"}
+                placeholder={"Select HR mail for this travel"}
+                fetchFunction={useUser}
+                displayKey={"email"}
+                primaryKey={"pkUserId"}
+              />
+              {/* <NewAsyncSingleCombobox
+                  disabled={false}
                   form={form}
                   name={"hrMail"}
                   label={"HR Mail"}
-                  type="email"
-                  placeholder={"something@roimaint.com"}
-                />
-                <DatePickerWithRange
-                  form={form}
-                  label={"Date range"}
-                  name={"dateRange"}
-                />
-              </FieldGroup>
-              <FieldGroup className="space-y-4">
-                <FormField
-                  form={form}
-                  name={"description"}
-                  label={"Description"}
-                  type="text"
-                  placeholder={"Description"}
-                />
-                <FormField
-                  form={form}
-                  name={"maxGrantPerDay"}
-                  label={"Maximum Grant Per Day"}
-                  type="number"
-                  placeholder={"10000"}
-                />
-                <AsyncMultiCombobox
+                  placeholder={"Select HR mail for this travel"}
+                  fetchFunction={useUser}
+                  displayKey={"email"}
+                  primaryKey={"pkUserId"}
+                /> */}
+
+              <AsyncCombobox
+                single={false}
+                form={form}
+                name={"userIds"}
+                label={"Users"}
+                placeholder={"Select users for this travel"}
+                fetchFunction={useUser}
+                ref={selectedValuesRef}
+                displayKey={"email"}
+                primaryKey={"pkUserId"}
+              />
+
+              {/* <NewAsyncMultiCombobox
                   disabled={false}
-                  prev={form.watch("userIds")}
-                  onValueChange={appendUser}
                   form={form}
                   name={"userIds"}
                   label={"Users"}
-                  placeholder={"Select travel users"}
-                  isLoading={userLoading}
-                  queryRes={users}
-                  valueField={"pkUserId"}
-                  displayField={"email"}
-                  onInputChange={setSearchValue}
-                />
-              </FieldGroup>
+                  placeholder={"Select users for this travel"}
+                  fetchFunction={useUser}
+                  ref={selectedValuesRef}
+                  displayKey={"email"}
+                  primaryKey={"pkUserId"}
+                /> */}
             </div>
             {fields.map((des, idx) => (
-              <div className="col-span-2 flex gap-4 mt-11 items-end" key={idx}>
+              <div
+                className="col-span-2 flex gap-4 mt-11 items-end"
+                key={des.id}
+              >
                 <FormField
                   form={form}
                   name={`destinations.${idx}.addressLine1`}
@@ -255,10 +318,15 @@ export function AddTravelForm({ currentData, isUpdate = false }: props) {
                   type="text"
                   placeholder={"Address line 2"}
                 />
-                <CountryComboboxWrapper
-                  disabled={false}
+                <AsyncCombobox
+                  single={true}
                   form={form}
                   name={`destinations.${idx}.countryId`}
+                  label={"Country"}
+                  placeholder={"Select country"}
+                  fetchFunction={useGetCountryByName}
+                  displayKey={"countryName"}
+                  primaryKey={"pkCountryId"}
                 />
                 <CityComboboxWrapper
                   disabled={false}
@@ -273,8 +341,8 @@ export function AddTravelForm({ currentData, isUpdate = false }: props) {
                 ) : (
                   <Button
                     variant="destructive"
-                    onClick={() => {
-                      event?.preventDefault();
+                    onClick={(e) => {
+                      e.preventDefault();
                       remove(idx);
                     }}
                   >
@@ -290,29 +358,31 @@ export function AddTravelForm({ currentData, isUpdate = false }: props) {
               </TableCaption>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[325px]">Email</TableHead>
+                  <TableHead className="w-81.25">Email</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead className="w-[50px] text-right">Action</TableHead>
+                  <TableHead className="w-12.5 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {userIds.map((id, index) => {
-                  const user = users?.find((u) => u.pkUserId === id);
+                {form.watch("userIds")?.map((user, index) => {
                   if (!user) return null;
+                  const u = user as unknown as {
+                    profile?: { name?: string };
+                    email?: string;
+                  };
                   return (
                     <TableRow key={user.pkUserId}>
                       <TableCell className="font-medium">
-                        {user.profile?.name}
+                        {u.profile?.name}
                       </TableCell>
-                      <TableCell className="font-medium">
-                        {user.email}
-                      </TableCell>
+                      <TableCell className="font-medium">{u.email}</TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => {
                             removeUser(index);
+                            selectedValuesRef.current?.updateSelectedValues();
                           }}
                         >
                           <Trash className="h-4 w-4 text-red-500" />
@@ -328,7 +398,11 @@ export function AddTravelForm({ currentData, isUpdate = false }: props) {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <ButtonSpinner isPending={isPending} text="Submit" />
+            <ButtonSpinner
+              isPending={isPending}
+              form="form-rhf-demo"
+              text="Submit"
+            />
           </DialogFooter>
         </form>
       </DialogContent>

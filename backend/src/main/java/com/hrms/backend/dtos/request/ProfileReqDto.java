@@ -2,8 +2,8 @@ package com.hrms.backend.dtos.request;
 
 import com.hrms.backend.entities.Department;
 import com.hrms.backend.entities.Profile;
-import com.hrms.backend.entities.ProfileStatus;
 import com.hrms.backend.entities.User;
+import com.hrms.backend.enums.ProfileStatus;
 import com.hrms.backend.validations.OnCreate;
 import com.hrms.backend.validations.OnUpdate;
 import jakarta.persistence.*;
@@ -39,6 +39,7 @@ public class ProfileReqDto {
     @NotNull(message = "Department is required", groups = {OnCreate.class, OnUpdate.class})
     private UUID departmentId;
 
-    @NotNull(message = "Profile status is required", groups = {OnUpdate.class})
-    private UUID profileStatusId;
+    private ProfileStatus profileStatus;
+
+    private List<UUID> gameIds;
 }

@@ -46,19 +46,19 @@ public class DepartmentController {
     }
 
     @PostMapping("/")
-//    @PreAuthorize("hasAuthority('ADD_ROLE')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_USER')")
     public ResponseEntity<ApiResponse<DepartmentResDto>> addDepartment(@RequestBody @Validated(OnCreate.class) DepartmentReqDto departmentReqDto) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Department added successfully", departmentService.addDepartment(departmentReqDto)));
     }
 
     @PatchMapping("/{id}")
-//    @PreAuthorize("hasAuthority('MANAGE_USER')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_USER')")
     public ResponseEntity<ApiResponse<DepartmentResDto>> updateDepartment(@PathVariable UUID id, @RequestBody @Validated(OnUpdate.class) DepartmentReqDto departmentReqDto) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("Department updated successfully", departmentService.updateDepartment(id, departmentReqDto)));
     }
 
     @DeleteMapping("/{id}")
-//    @PreAuthorize("hasAuthority('MANAGE_USER')")
+    @PreAuthorize("hasAuthority('MANAGE_ALL_USER')")
     public ResponseEntity<ApiResponse<String>> deleteDepartment(@PathVariable UUID id) {
         String res = "Department not deleted";
         if (departmentService.deleteDepartment(id)){

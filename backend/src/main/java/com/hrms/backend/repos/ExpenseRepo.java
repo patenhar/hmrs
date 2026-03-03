@@ -1,7 +1,11 @@
 package com.hrms.backend.repos;
 
 import com.hrms.backend.entities.Expense;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -11,6 +15,7 @@ import java.util.UUID;
 
 @Repository
 public interface ExpenseRepo extends JpaRepository<Expense, UUID>{
+    void deleteAllByUserTravel_PkUserTravelId(UUID userTravelId);
     @Query(value = "SELECT * " +
             "FROM expenses e " +
             "INNER JOIN user_travels ut " +
@@ -30,4 +35,9 @@ SELECT * FROM expenses e INNER JOIN user_travels ut ON e.fk_user_travel_id = ut.
 """, nativeQuery = true)
     List<Expense> findExpensesByUserTravelId(@Param("userTravelId") UUID userTravelId);
 
+    @Modifying
+    @Query("UPDATE Expense e SET e.lastActionBy = null WHERE e.lastActionBy.pkUserId = :userId")
+    void clearLastActionByUserId(@Param("userId") UUID userId);
+
+    Page<Expense> findAll(Specification<Expense> specification, Pageable pageable);
 }

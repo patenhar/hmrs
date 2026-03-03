@@ -8,5 +8,5 @@ import java.util.UUID;
 
 public interface NotificationRepo extends JpaRepository<Notification, UUID> {
     List<Notification> findAllNotificationsByUserPkUserIdOrderByCreatedAtDesc(UUID userId);
-    
+    void deleteAllByUser_PkUserId(UUID userId);
 }

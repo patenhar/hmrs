@@ -20,10 +20,13 @@ public class UserTravel {
     @JoinColumn(name = "fk_user_id", referencedColumnName = "pkUserId")
     private User user;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne
     @JoinColumn(name = "fk_travel_id", referencedColumnName = "pkTravelId")
     private Travel travel;
 
-    @OneToMany(mappedBy = "userTravel")
+    @OneToMany(mappedBy = "userTravel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Expense> expenses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "userTravel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TravelDocument> travelDocuments = new ArrayList<>();
 }

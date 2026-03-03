@@ -1,16 +1,16 @@
 import {
-  QueryClient,
   useMutation,
   useQuery,
   useQueryClient,
+  keepPreviousData,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 import travelService from "../travelService.ts";
-
-// const queryClient = useQueryClient();
+import type { TravelPageParams } from "../travelService.ts";
 
 const {
   getAllTravels,
+  getTravelsPaginated,
   getTravelById,
   createTravel,
   updateTravel,
@@ -25,6 +25,14 @@ export const useGetAllTravel = () => {
   return useQuery({
     queryKey: ["Travel"],
     queryFn: () => getAllTravels(),
+  });
+};
+
+export const useGetTravelsPaginated = (params: TravelPageParams) => {
+  return useQuery({
+    queryKey: ["Travel", "paginated", params],
+    queryFn: () => getTravelsPaginated(params),
+    placeholderData: keepPreviousData,
   });
 };
 
@@ -64,13 +72,15 @@ export const useUpdateTravel = () => {
 };
 
 export const useDeleteTravel = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteTravel,
     onSuccess: (res) => {
       toast.success(res.data.message);
+      queryClient.invalidateQueries({ queryKey: ["Travel"] });
     },
     onError: (error) => {
-      toast.error("Travel creation failed", {
+      toast.error("Travel deletion failed", {
         description: error.message || "Something went wrong",
       });
     },

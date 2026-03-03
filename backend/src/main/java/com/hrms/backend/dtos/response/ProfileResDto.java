@@ -1,11 +1,6 @@
 package com.hrms.backend.dtos.response;
 
-import com.hrms.backend.entities.Department;
-import com.hrms.backend.entities.Profile;
-import com.hrms.backend.entities.ProfileStatus;
-import com.hrms.backend.entities.User;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import com.hrms.backend.enums.ProfileStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,8 +15,9 @@ public class ProfileResDto {
     private String name;
     private LocalDate birthDate;
     private LocalDate joiningDate;
-    private UserResDto user;
-    private ProfileResDto managerProfile;
+    private UserResDtoForProfile user;
+    private ProfileResDtoForManager managerProfile;
     private DepartmentResDto department;
-    private ProfileStatusResDto profileStatus;
+    private ProfileStatus profileStatus;
+    private List<GameResDto> games;
 }

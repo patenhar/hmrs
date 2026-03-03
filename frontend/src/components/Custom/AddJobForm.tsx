@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import * as z from "zod";
+import { useState } from "react";
 
 import { useJobStakeHolderTypes } from "@/api/queries/useJobStakeHolders";
 
@@ -13,12 +14,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { FieldGroup } from "@/components/ui/field";
 import FormField from "@/components/Custom/FormField";
 import { ButtonSpinner } from "@/components/Custom/ButtonSpinner";
-import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -29,111 +28,159 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Trash } from "lucide-react";
-import { AsyncSingleCombobox } from "./AsyncSingleCombobox";
 import { useUser } from "@/api/queries/useUser";
 import FileFormField from "./FileFormField";
 import { useNavigate } from "react-router-dom";
-import UserComboboxWrapper from "../wrappers/UserComboboxWrapper";
-import JobStakeHolderTypeComboboxWrapper from "../wrappers/JobStakeHolderTypeComboboxWrapper";
-import { useRegister } from "@/api/queries/useAuth";
-import { useAddJob } from "@/api/queries/useJob";
+import { useAddJob, useUpdateJob } from "@/api/queries/useJob";
+import AsyncCombobox from "./AsyncCombobox";
+import { toast } from "sonner";
 
-const formSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
-  tempUserId: z.string().optional(),
-  tempType: z.string().optional(),
-  jobStakeHolderReqDtos: z
-    .array(
-      z.object({
-        userId: z.string(),
-        jobStakeHolderTypeId: z.string(),
-      }),
-    )
-    .min(1, "At least one stakeholder is required"),
-  documentReqDto: z.object({
-    fkDocumentTypeId: z.string(),
-    file: z.any().refine((file) => file instanceof File, {
-      message: "File is required",
+const getFormSchema = (isUpdate: boolean) =>
+  z.object({
+    title: z.string().min(1, "Title is required"),
+    description: z.string().min(1, "Description is required"),
+    jobStakeHolderReqDtos: z
+      .array(
+        z.object({
+          userId: z.object({
+            pkUserId: z.string(),
+            email: z.string(),
+          }),
+          jobStakeHolderTypeId: z.object({
+            pkJobStakeHolderTypeId: z.string(),
+            jobStakeHolderTypeName: z.string(),
+          }),
+        }),
+      )
+      .min(1, "At least one stakeholder is required"),
+    tempUser: z.object().nullable().optional(),
+    tempType: z.object().nullable().optional(),
+    documentReqDto: z.object({
+      fkDocumentTypeId: z.string(),
+      file: isUpdate
+        ? z.any().optional()
+        : z.any().refine((f) => f instanceof File, {
+            message: "File is required",
+          }),
     }),
-  }),
-});
-
-export function AddJobForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      tempUserId: "",
-      tempType: "",
-      jobStakeHolderReqDtos: [],
-      documentReqDto: {
-        fkDocumentTypeId: "f8eb8f11-33e1-4f4f-b248-1b755aed16a0",
-        file: undefined,
-      },
-    },
   });
 
-  const { fields, append, remove } = useFieldArray({
+export function AddJobForm({
+  currentData,
+  isUpdate = false,
+}: {
+  currentData?: any;
+  isUpdate?: boolean;
+}) {
+  console.log(currentData);
+  const formSchema = getFormSchema(isUpdate);
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: currentData
+      ? {
+          title: currentData.title,
+          description: currentData.description,
+          jobStakeHolderReqDtos:
+            currentData.jobStakeHolders?.map((s) => ({
+              userId: {
+                pkUserId: s.user.pkUserId,
+                email: s.user.email,
+              },
+              jobStakeHolderTypeId: {
+                pkJobStakeHolderTypeId: s.jobStakeHolderType,
+                jobStakeHolderTypeName: String(s.jobStakeHolderType)
+                  .replace(/_/g, " ")
+                  .replace(/\b\w/g, (l) => l.toUpperCase()),
+              },
+            })) ?? [],
+          documentReqDto: {
+            fkDocumentTypeId: "JOB_DESCRIPTION",
+            file: undefined,
+          },
+        }
+      : {
+          title: "",
+          description: "",
+          jobStakeHolderReqDtos: [],
+          documentReqDto: {
+            fkDocumentTypeId: "JOB_DESCRIPTION",
+            file: undefined,
+          },
+        },
+  });
+
+  const { append, remove } = useFieldArray({
     control: form.control,
     name: "jobStakeHolderReqDtos",
   });
 
-  const { mutate: addJob, isPending } = useAddJob();
+  const { mutate: addJob, isPending: addPending } = useAddJob();
+  const { mutate: updateJob, isPending: updatePending } = useUpdateJob();
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     const formData = new FormData();
     formData.append("title", data.title);
     formData.append("description", data.description);
-    formData.append("documentReqDto.file", data.documentReqDto.file);
-    formData.append(
-      "documentReqDto.fkDocumentTypeId",
-      data.documentReqDto.fkDocumentTypeId,
-    );
-    data.jobStakeHolderReqDtos.forEach((dto, idx) => {
-      formData.append(`jobStakeHolderReqDtos[${idx}].userId`, dto.userId);
+    if (data.documentReqDto.file instanceof File) {
+      formData.append("documentReqDto.file", data.documentReqDto.file);
       formData.append(
-        `jobStakeHolderReqDtos[${idx}].jobStakeHolderTypeId`,
-        dto.jobStakeHolderTypeId,
+        "documentReqDto.documentType",
+        data.documentReqDto.fkDocumentTypeId,
+      );
+    }
+    data.jobStakeHolderReqDtos.forEach((dto, idx) => {
+      formData.append(
+        `jobStakeHolderReqDtos[${idx}].userId`,
+        dto.userId.pkUserId,
+      );
+      formData.append(
+        `jobStakeHolderReqDtos[${idx}].jobStakeHolderType`,
+        dto.jobStakeHolderTypeId.pkJobStakeHolderTypeId,
       );
     });
-    addJob(formData);
+    if (isUpdate && currentData?.pkJobId) {
+      updateJob(
+        { jobId: currentData.pkJobId, data: formData },
+        {
+          onSuccess: () => {
+            navigate(-1);
+          },
+        },
+      );
+    } else {
+      addJob(formData, {
+        onSuccess: () => {
+          navigate(-1);
+        },
+      });
+    }
   }
-  const { isLoading: userLoading, data: userData } = useUser("");
-  const { isLoading, data } = useJobStakeHolderTypes("");
-
-  const userMap = () => {
-    const map = new Map();
-    userData?.data.data.forEach((u) => map.set(u.pkUserId, u));
-    return map;
-  };
-
-  const typeMap = () => {
-    const map = new Map();
-    data?.data.data.forEach((u) => map.set(u.pkJobStakeHolderTypeId, u));
-    return map;
-  };
 
   function addStakeHolder() {
     event?.preventDefault();
-    const userId = form.getValues("tempUserId");
-    const typeId = form.getValues("tempType");
+    const user = form.watch("tempUser");
+    const type = form.watch("tempType");
 
-    if (!userId || !typeId) {
+    if (!user || !type) return;
+
+    const exists = form
+      .watch("jobStakeHolderReqDtos")
+      .some(
+        (js) =>
+          js.userId.pkUserId === user.pkUserId &&
+          js.jobStakeHolderTypeId.pkJobStakeHolderTypeId ===
+            type.pkJobStakeHolderTypeId,
+      );
+
+    if (exists) {
+      toast.error("This stakeholder is already added");
       return;
     }
 
-    const exists = fields.some(
-      (f) => f.userId === userId && f.jobStakeHolderTypeId === typeId,
-    );
-    if (exists) return;
     append({
-      userId,
-      jobStakeHolderTypeId: typeId,
+      userId: user,
+      jobStakeHolderTypeId: type,
     });
-    form.setValue("tempUserId", "");
-    form.setValue("tempType", "");
   }
 
   const navigate = useNavigate();
@@ -145,14 +192,12 @@ export function AddJobForm() {
         if (!open) navigate(-1);
       }}
     >
-      {/* <DialogTrigger asChild>
-        <Button variant="outline">Add Job</Button>
-      </DialogTrigger> */}
       <DialogContent className="w-full max-w-[90vw] lg:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Add Job</DialogTitle>
+          <DialogTitle>{isUpdate ? "Update Job" : "Add Job"}</DialogTitle>
           <DialogDescription>
-            Fill in the below details to add new job post
+            Fill in the below details to {isUpdate ? "update the" : "add new"}{" "}
+            job post
           </DialogDescription>
         </DialogHeader>
         <form
@@ -160,8 +205,8 @@ export function AddJobForm() {
           onSubmit={form.handleSubmit(onSubmit)}
           encType="multipart/form-data"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FieldGroup className="space-y-4">
+          <div className="no-scrollbar -mx-4 max-h-[50vh] overflow-y-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 form={form}
                 name={"title"}
@@ -169,19 +214,6 @@ export function AddJobForm() {
                 type="text"
                 placeholder={"Title"}
               />
-              <UserComboboxWrapper
-                disabled={false}
-                form={form}
-                name={"tempUserId"}
-              />
-              <FileFormField
-                form={form}
-                name={"documentReqDto.file"}
-                label={"JD"}
-                placeholder={"JD"}
-              />
-            </FieldGroup>
-            <FieldGroup className="space-y-4">
               <FormField
                 form={form}
                 name={"description"}
@@ -189,68 +221,94 @@ export function AddJobForm() {
                 type="text"
                 placeholder={"Description"}
               />
+              <AsyncCombobox
+                single={true}
+                disabled={false}
+                form={form}
+                name={"tempUser"}
+                label={"User"}
+                placeholder={"Select stakeholder for this job"}
+                fetchFunction={useUser}
+                displayKey={"email"}
+                primaryKey={"pkUserId"}
+              />
               <div className="flex justify-between gap-4 items-end">
-                <JobStakeHolderTypeComboboxWrapper
+                <AsyncCombobox
+                  single={true}
                   disabled={false}
                   form={form}
                   name={"tempType"}
+                  label={"Job stake holder type"}
+                  placeholder={"Select job stake holder type"}
+                  fetchFunction={useJobStakeHolderTypes}
+                  displayKey={"jobStakeHolderTypeName"}
+                  primaryKey={"pkJobStakeHolderTypeId"}
                 />
                 <Button
-                  type="butoon"
+                  type="button"
                   onClick={addStakeHolder}
-                  disabled={
-                    !form.watch("tempUserId") || !form.watch("tempType")
-                  }
+                  disabled={!form.watch("tempUser") || !form.watch("tempType")}
                 >
                   Add
                 </Button>
               </div>
-            </FieldGroup>
+              <FileFormField
+                form={form}
+                name={"documentReqDto.file"}
+                label={"JD"}
+                placeholder={"JD"}
+              />
+            </div>
+            <Table className="mt-8">
+              <TableCaption>
+                List selected of stack holders for this job
+              </TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead className="w-[50px] text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {form.watch("jobStakeHolderReqDtos").map((js, index) => {
+                  return (
+                    <TableRow
+                      key={`${js.userId.pkUserId}-${js.jobStakeHolderTypeId.pkJobStakeHolderTypeId}`}
+                    >
+                      <TableCell>{js.userId.profile?.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {js.userId.email}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {js.jobStakeHolderTypeId?.jobStakeHolderTypeName ??
+                          js.jobStakeHolderTypeId?.pkJobStakeHolderTypeId}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            remove(index);
+                          }}
+                        >
+                          <Trash className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
-          <Table>
-            <TableCaption>
-              List selected of stack holders for this job
-            </TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[325px]">Email</TableHead>
-                <TableHead className="w-[100px]">Role</TableHead>
-                <TableHead className="w-[50px] text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {fields.map((field, index) => {
-                const user = userMap().get(field.userId);
-                const type = typeMap().get(field.jobStakeHolderTypeId);
-
-                return (
-                  <TableRow
-                    key={`${user?.userId} + ${type?.pkJobStakeHolderTypeId}`}
-                  >
-                    <TableCell className="font-medium">{user?.email}</TableCell>
-                    <TableCell>{type?.jobStakeHolderTypeName}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          remove(index);
-                        }}
-                      >
-                        <Trash className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
           <DialogFooter className="col-span-1 md:col-span-2 flex justify-end gap-3">
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <ButtonSpinner
-              isPending={isPending}
+              isPending={isUpdate ? updatePending : addPending}
               form="form-rhf-demo"
               text="Submit"
             />

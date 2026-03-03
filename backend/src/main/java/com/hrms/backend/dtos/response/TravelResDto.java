@@ -20,4 +20,5 @@ public class TravelResDto {
     private String hrMail;
     private List<AddressResDto> destinations;
     private List<UserTravelResDtoForTravel> userTravels;
+    private Boolean isDeleted;
 }

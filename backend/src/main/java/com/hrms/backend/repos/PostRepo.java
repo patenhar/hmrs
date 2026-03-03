@@ -2,6 +2,7 @@ package com.hrms.backend.repos;
 
 import com.hrms.backend.entities.Post;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -14,7 +15,7 @@ import java.util.UUID;
 public interface PostRepo extends JpaRepository<Post, UUID> {
     List<Post> findByIsDeletedFalseOrderByCreatedAtDesc();
 
-    @Query("SELECT p FROM Post p WHERE p.isDeleted = false " +
+    @Query("SELECT DISTINCT p FROM Post p LEFT JOIN FETCH p.tags WHERE p.isDeleted = false " +
            "AND (:authorId IS NULL OR CAST(p.author.pkUserId AS string) = :authorId) " +
            "AND (:tag IS NULL OR EXISTS (SELECT t FROM p.tags t WHERE LOWER(t.tag) LIKE LOWER(CONCAT('%', :tag, '%')))) " +
            "AND (:from IS NULL OR p.createdAt >= :from) " +
@@ -26,4 +27,8 @@ public interface PostRepo extends JpaRepository<Post, UUID> {
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to
     );
+
+    @Modifying
+    @Query("UPDATE Post p SET p.author = null WHERE p.author.pkUserId = :userId")
+    void clearAuthorByUserId(@Param("userId") UUID userId);
 }

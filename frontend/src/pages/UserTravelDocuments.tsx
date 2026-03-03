@@ -50,7 +50,7 @@ export default function UserTravelDocuments() {
                   text={new URL(d.document.accessUrl).pathname.split("/").pop()}
                 />
               </TableCell>
-              <TableCell>{d.document.documentType.documentTypeName}</TableCell>
+              <TableCell>{d.document.documentType}</TableCell>
               <TableCell>{d.uploadedBy.email}</TableCell>
               <TableCell>{d.createAt}</TableCell>
               <Button

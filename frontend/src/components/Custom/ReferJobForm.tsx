@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,15 +11,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Textarea } from "@/components/ui/textarea";
 import { FieldGroup } from "@/components/ui/field";
 import FormField from "@/components/Custom/FormField";
 import { ButtonSpinner } from "@/components/Custom/ButtonSpinner";
@@ -33,7 +24,7 @@ const formSchema = z.object({
   email: z.email(),
   note: z.string().min(1, "Note is required"),
   documentReqDto: z.object({
-    fkDocumentTypeId: z.string(),
+    documentType: z.string(),
     file: z.any().refine((file) => file instanceof File, {
       message: "File is required",
     }),
@@ -49,7 +40,7 @@ export function ReferJobForm() {
       email: "",
       note: "",
       documentReqDto: {
-        fkDocumentTypeId: "f8eb8f11-33e1-4f4f-b248-1b755aed16a0",
+        documentType: "JOB_DESCRIPTION",
         file: undefined,
       },
     },
@@ -64,11 +55,18 @@ export function ReferJobForm() {
     formData.append("note", data.note);
     formData.append("documentReqDto.file", data.documentReqDto.file);
     formData.append(
-      "documentReqDto.fkDocumentTypeId",
-      data.documentReqDto.fkDocumentTypeId,
+      "documentReqDto.documentType",
+      data.documentReqDto.documentType,
     );
 
-    referJob({ id: jobId, data: formData });
+    referJob(
+      { id: jobId, data: formData },
+      {
+        onSuccess: () => {
+          navigate(-1);
+        },
+      },
+    );
   }
   const navigate = useNavigate();
 
@@ -76,18 +74,11 @@ export function ReferJobForm() {
     <Dialog
       open={true}
       onOpenChange={(open) => {
-        if (!open) navigate(-1);
+        if (!open) {
+          navigate(-1);
+        }
       }}
     >
-      {/* <DialogTrigger
-        asChild
-        onClick={(e) => {
-          e.stopPropagation();
-          navigate(`${jobId}/refer`);
-        }}
-      >
-        <Button variant="default">Refer Job</Button>
-      </DialogTrigger> */}
       <DialogContent className="sm:max-w-sm ">
         <DialogHeader>
           <DialogTitle>Refer Job</DialogTitle>
@@ -151,7 +142,11 @@ export function ReferJobForm() {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <ButtonSpinner isPending={isPending} text="Submit" />
+            <ButtonSpinner
+              isPending={isPending}
+              form="form-rhf-demo"
+              text="Submit"
+            />
           </DialogFooter>
         </form>
       </DialogContent>

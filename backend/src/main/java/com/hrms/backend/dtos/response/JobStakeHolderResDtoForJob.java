@@ -1,5 +1,6 @@
 package com.hrms.backend.dtos.response;
 
+import com.hrms.backend.enums.JobStakeHolderType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,5 +10,5 @@ import java.util.UUID;
 public class JobStakeHolderResDtoForJob {
     private UUID jobStakeHolderId;
     private UserResDto user;
-    private JobStakeHolderTypeResDto jobStakeHolderType;
+    private JobStakeHolderType jobStakeHolderType;
 }

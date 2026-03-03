@@ -21,11 +21,9 @@ public class TravelReqDto {
     private String description;
 
     @NotBlank(message = "Travel date is required", groups = {OnCreate.class, OnUpdate.class})
-    @Future(message = "Travel date must be in the future", groups = {OnCreate.class, OnUpdate.class})
     private Date travelDate;
 
     @NotBlank(message = "Return date is required", groups = {OnCreate.class, OnUpdate.class})
-    @Future(message = "Return date must be in the future", groups = {OnCreate.class, OnUpdate.class})
     private Date returnDate;
 
     @NotNull(message = "Maximum grant per day is required", groups = {OnCreate.class, OnUpdate.class})

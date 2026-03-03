@@ -1,5 +1,7 @@
 package com.hrms.backend.entities;
 
+import com.hrms.backend.enums.ExpenseStatus;
+import com.hrms.backend.enums.ExpenseType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -23,7 +25,7 @@ public class Expense {
     @NotBlank
     private String description;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "fk_document_id", referencedColumnName = "pkDocumentId")
     private Document document;
 
@@ -31,8 +33,7 @@ public class Expense {
     @JoinColumn(name = "fk_user_travel_id", referencedColumnName = "pkUserTravelId")
     private UserTravel userTravel;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_expense_type_id", referencedColumnName = "pkExpenseTypeId")
+    @Enumerated(EnumType.STRING)
     private ExpenseType expenseType;
 
     private LocalDateTime lastActionAt;
@@ -43,7 +44,6 @@ public class Expense {
     
     private String remarks;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_expense_status_id", referencedColumnName = "pkExpenseStatusId")
+    @Enumerated(EnumType.STRING)
     private ExpenseStatus expenseStatus;
 }

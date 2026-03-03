@@ -1,5 +1,6 @@
 package com.hrms.backend.entities;
 
+import com.hrms.backend.enums.ReferralStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -33,11 +34,10 @@ public class Referral extends AuditableTimestamp {
     @NotBlank
     private String note;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "fk_docuemnt_id", referencedColumnName = "pkDocumentId")
     private Document cv;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_referral_status_id", referencedColumnName = "pkReferralStatusId")
+    @Enumerated(EnumType.STRING)
     private ReferralStatus referralStatus;
 }

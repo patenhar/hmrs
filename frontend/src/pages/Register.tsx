@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -11,25 +11,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Field, FieldGroup } from "@/components/ui/field";
 import { useRegister } from "../api/queries/useAuth.tsx";
 import ButtonLink from "@/components/Custom/ButtonLink.tsx";
 import { ButtonSpinner } from "@/components/Custom/ButtonSpinner.tsx";
 import FormField from "@/components/Custom/FormField.tsx";
-import RoleComboboxWrapper from "@/components/wrappers/RoleComboboxWrapper.tsx";
-import { is, ro } from "date-fns/locale";
+import AsyncCombobox from "@/components/Custom/AsyncCombobox.tsx";
+import { useGetRoleByName } from "@/api/queries/useRole.ts";
 import { useNavigate } from "react-router";
 
 const formSchema = z
   .object({
     email: z.email("Invalid email address"),
-    roleId: z.string().min(1, "Role is required"),
+    roleId: z.object({ pkRoleId: z.string(), roleName: z.string() }).nullable(),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z
       .string()
@@ -47,14 +41,14 @@ export default function Register() {
       email: "",
       password: "",
       confirmPassword: "",
-      roleId: "",
+      roleId: null,
     },
   });
 
   const { mutateAsync: register, isPending } = useRegister();
   const navigate = useNavigate();
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    const res = await register(data);
+    const res = await register({ ...data, roleId: data.roleId?.pkRoleId });
     console.log(res);
     navigate(`/users/${res.data.data.pkUserId}/profile/create`);
   }
@@ -62,12 +56,9 @@ export default function Register() {
   return (
     <Card className="w-full sm:max-w-md mx-auto mt-10">
       <CardHeader>
-        <CardTitle>Register</CardTitle>
+        <CardTitle>Register new user</CardTitle>
         <CardDescription>
-          <div className="w-fit">
-            Already have an account?
-            <ButtonLink to="/login" text="Login now" />
-          </div>
+          <div className="w-fit">Fill in the form to create a new user.</div>
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -94,7 +85,16 @@ export default function Register() {
               type="password"
               placeholder="Confirm Password"
             />
-            <RoleComboboxWrapper disabled={false} form={form} name="roleId" />
+            <AsyncCombobox
+              single={true}
+              form={form}
+              name="roleId"
+              label="Role"
+              placeholder="Select role"
+              fetchFunction={useGetRoleByName}
+              displayKey="roleName"
+              primaryKey="pkRoleId"
+            />
           </FieldGroup>
         </form>
       </CardContent>

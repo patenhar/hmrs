@@ -13,15 +13,19 @@ export default function Can({
   ownerId,
   extraAuthority,
   children,
-}: Props) {
+}: Readonly<Props>) {
   const { user } = useAuth();
   const authorities = user?.authorities || [];
 
-  if (!hasAuthority(authorities, authority)) return null;
-  if (!ownerId && !extraAuthority) return <>{children}</>;
-  if (extraAuthority && hasAuthority(authorities, extraAuthority))
+  const hasPrimary = hasAuthority(authorities, authority);
+  const hasExtra =
+    !!extraAuthority && hasAuthority(authorities, extraAuthority);
+
+  if (!hasPrimary && !hasExtra) return null;
+  if (hasExtra) return <>{children}</>;
+  if (hasPrimary && !ownerId) return <>{children}</>;
+  if (hasPrimary && ownerId && user?.pkUserId === ownerId)
     return <>{children}</>;
-  if (ownerId && user?.pkUserId === ownerId) return <>{children}</>;
 
   return null;
 

@@ -8,7 +8,7 @@ export const useGetCityByCountry = (name: string, countryId: string) => {
     queryKey: ["City", name],
     queryFn: () => getCityByCountry(name, countryId),
     enabled: () => {
-      return countryId && name.length > 0;
+      return countryId.length > 0;
     },
   });
 };

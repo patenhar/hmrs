@@ -20,7 +20,7 @@ public class PostReqDto {
     @NotBlank(message = "Description is required", groups = {OnCreate.class, OnUpdate.class})
     private String description;
 
-    private List<UUID> tagIds = new ArrayList<>();
+    private List<String> tags = new ArrayList<>();
 
     @NotNull(message = "Visibility is required", groups = {OnCreate.class})
     private UUID visibilityId;

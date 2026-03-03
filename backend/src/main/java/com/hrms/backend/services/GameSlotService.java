@@ -10,6 +10,7 @@ import com.hrms.backend.repos.GameSlotRepo;
 import com.hrms.backend.utils.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cglib.core.Local;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -53,15 +54,33 @@ public class GameSlotService {
         return gameSlotRepo.findAvailableSlots(gameId, date).stream().map(gs -> modelMapper.map(gs, GameSlotResDto.class)).toList();
     }
 
-    @Async
-//    @Scheduled(cron = "0 1 0 * * MON-FRI")
-//    @Scheduled(cron = "0 * * * * *")
-    public void addGameSlot() {
-        LocalDate date = LocalDate.now();
-        List<Game> games = gameRepo.findAll();
-        for(Game game: games) {
+    public GameSlot getUpcomingGameSlot(LocalDate date, LocalTime time) {
+        return gameSlotRepo.findUpcomingGameSlot(date, time);
+    }
+
+    public GameSlot getSlotByGameDateAndBeginTime(UUID gameId, LocalDate date, LocalTime beginTime) {
+        return gameSlotRepo.findGameSlotByGamePkGameIdAndDateAndBeginTime(gameId, date, beginTime);
+    }
+
+    public List<GameSlotResDto> getSlotsByGameDateAndTime(UUID gameId, LocalDate date, LocalTime time) {
+        return gameSlotRepo.findGameSlotsByGamePkGameIdAndDateAndBeginTimeAfterOrderByBeginTime(gameId, date, time).stream().map(gs -> modelMapper.map(gs, GameSlotResDto.class)).toList();
+    }
+
+    public GameSlot getGameSlotEntityById(UUID id) {
+        return gameSlotRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("GameSlot not found"));
+    }
+
+    public GameSlot getSlotByGameDateAndBeginTimeRange(UUID gameId, LocalDate date, LocalTime from, LocalTime to) {
+        List<GameSlot> slots = gameSlotRepo.findGameSlotsByGameAndDateAndBeginTimeBetween(gameId, date, from, to);
+        return slots.isEmpty() ? null : slots.get(0);
+    }
+
+    public void generateSlots(Game game, LocalDate date) {
+        List<GameSlot> existingSlots = gameSlotRepo.findGameSlotsByGamePkGameIdAndDate(game.getPkGameId(), date);
+        int dayOfWeek = date.getDayOfWeek().getValue();
+        if(existingSlots.isEmpty() && dayOfWeek != 5 && dayOfWeek != 6) {
             long operatingHours = Duration.between(game.getOperationHourBegin(), game.getOperationHourEnd()).toHours();
-            int numberOfSlots = (int)(operatingHours / game.getDuration());
+            int numberOfSlots = (int) (operatingHours / game.getDuration());
             long seconds = (long) (game.getDuration() * 3600);
 
             LocalTime slotTime = game.getOperationHourBegin();
@@ -76,6 +95,19 @@ public class GameSlotService {
                 log.info("Slot added");
                 numberOfSlots--;
             }
+        }
+    }
+
+    @Async
+//    @Scheduled(cron = "0 1 0 * * MON-FRI")
+    @Scheduled(cron = "0 * * * * *")
+    public void addGameSlot() {
+        LocalDate date = LocalDate.now();
+        List<Game> games = gameRepo.findAll();
+
+        for(Game game: games) {
+            generateSlots(game, date);
+            generateSlots(game, date.plusDays(1));
         }
     }
 }

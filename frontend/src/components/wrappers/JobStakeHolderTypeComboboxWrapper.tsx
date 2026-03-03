@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { AsyncSingleCombobox } from "../Custom/AsyncSingleCombobox";
+import AsyncCombobox from "../Custom/AsyncCombobox";
 import { useJobStakeHolderTypes } from "@/api/queries/useJobStakeHolders";
 
 export default function JobStakeHolderTypeComboboxWrapper({
@@ -7,22 +6,16 @@ export default function JobStakeHolderTypeComboboxWrapper({
   form,
   name,
 }) {
-  const [searchValue, setSearchValue] = useState("");
-
-  const { isLoading: JobStakeHolderTypeLoading, data: JobStakeHolderTypeData } =
-    useJobStakeHolderTypes(searchValue);
-
   return (
-    <AsyncSingleCombobox
+    <AsyncCombobox
+      single={true}
       form={form}
       name={name}
       label={"Job stake holder type"}
       placeholder={"Select Job stake holder type"}
-      isLoading={JobStakeHolderTypeLoading}
-      queryRes={JobStakeHolderTypeData?.data.data}
-      valueField={"pkJobStakeHolderTypeId"}
-      displayField={"jobStakeHolderTypeName"}
-      onInputChange={setSearchValue}
+      fetchFunction={useJobStakeHolderTypes}
+      displayKey={"jobStakeHolderTypeName"}
+      primaryKey={"pkJobStakeHolderTypeId"}
     />
   );
 }

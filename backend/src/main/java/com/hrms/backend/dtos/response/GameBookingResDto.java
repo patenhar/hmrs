@@ -1,8 +1,6 @@
 package com.hrms.backend.dtos.response;
 
-import com.hrms.backend.entities.GameBookingStatus;
-import com.hrms.backend.entities.GameSlot;
-import com.hrms.backend.entities.User;
+import com.hrms.backend.enums.GameBookingStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +13,6 @@ public class GameBookingResDto {
     private UUID pkGameBookingId;
     private GameSlotResDto gameSlot;
     private UserResDto bookedBy;
-    private GameBookingStatusResDto gameBookingStatus;
+    private GameBookingStatus gameBookingStatus;
     private List<UserResDto> teamMembers;
 }

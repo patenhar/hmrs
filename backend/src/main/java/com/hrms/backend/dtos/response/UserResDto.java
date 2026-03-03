@@ -11,4 +11,5 @@ public class UserResDto {
     private UUID pkUserId;
     private String email;
     private RoleResDto role;
+    private ProfileResDtoForUser profile;
 }

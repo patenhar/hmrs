@@ -118,6 +118,7 @@ public class PostService {
 
     // ── public API ────────────────────────────────────────────────────────────
 
+    @Transactional(readOnly = true)
     public List<PostResDto> getAllPosts(String authorId, String tag, LocalDate from, LocalDate to) {
         UUID currentUserId = null;
         try {
@@ -133,6 +134,7 @@ public class PostService {
         return posts.stream().map(p -> toResDto(p, finalCurrentUserId)).toList();
     }
 
+    @Transactional(readOnly = true)
     public PostResDto getPostById(UUID id) {
         Post post = findPostEntityById(id);
         UUID currentUserId = null;
@@ -152,9 +154,11 @@ public class PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("Visibility not found"));
 
         List<Tag> tags = new ArrayList<>();
-        if (dto.getTagIds() != null) {
-            for (UUID tagId : dto.getTagIds()) {
-                tags.add(tagService.findTagEntityById(tagId));
+        if (dto.getTags() != null) {
+            for (String tagName : dto.getTags()) {
+                if (tagName != null && !tagName.isBlank()) {
+                    tags.add(tagService.findOrCreateByName(tagName));
+                }
             }
         }
 
@@ -183,8 +187,11 @@ public class PostService {
         post.setTitle(dto.getTitle());
         post.setDescription(dto.getDescription());
 
-        if (dto.getTagIds() != null) {
-            List<Tag> tags = dto.getTagIds().stream().map(tagService::findTagEntityById).toList();
+        if (dto.getTags() != null) {
+            List<Tag> tags = new ArrayList<>(dto.getTags().stream()
+                    .filter(n -> n != null && !n.isBlank())
+                    .map(tagService::findOrCreateByName)
+                    .toList());
             post.setTags(tags);
         }
 

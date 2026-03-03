@@ -20,4 +20,5 @@ public class JobResDto {
     private String description;
     private DocumentResDto jd;
     private List<JobStakeHolderResDtoForJob> jobStakeHolders;
+    private Boolean isDeleted;
 }

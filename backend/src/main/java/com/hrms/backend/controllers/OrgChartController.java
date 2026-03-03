@@ -25,7 +25,7 @@ public class OrgChartController {
     }
 
     @GetMapping("/{id}/org-chart")
-//    @PreAuthorize("hasAuthority('VIEW_USER')")
+    @PreAuthorize("hasAuthority('VIEW_ORGCHART') or hasAuthority('MANAGE_ALL_ORGCHART')")
     public ResponseEntity<ApiResponse<OrgChartResDto>> getOrgChartById(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("OrgChart fetched successfully", orgChartService.getOrgChart(id)));
     }

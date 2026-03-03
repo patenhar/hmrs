@@ -30,6 +30,12 @@ export function AsyncMultiCombobox({
 
   const trimmedSearchValue = searchValue?.trim();
 
+  useEffect(() => {
+    if (trimmedSearchValue) {
+      setSearchResults(queryRes ?? []);
+    }
+  }, [queryRes, trimmedSearchValue]);
+
   function getStatus() {
     if (isLoading || isPending) {
       return "Searching";
@@ -73,18 +79,18 @@ export function AsyncMultiCombobox({
                 ]);
                 setSearchValue("");
               }}
-              onInputValueChange={(nextSearchValue) => {
-                if (nextSearchValue.trim() !== "" || nextSearchValue !== null) {
-                  setSearchValue(nextSearchValue);
-                  if (!nextSearchValue) {
-                    setSearchResults([]);
-                    return;
-                  }
-                  startTransition(() => {
-                    onInputChange(nextSearchValue);
-                    setSearchResults(queryRes ?? []);
-                  });
+              onInputValueChange={(nextSearchValue = "") => {
+                setSearchValue(nextSearchValue);
+
+                if (nextSearchValue.trim() === "") {
+                  setSearchResults([]);
+                  return;
                 }
+
+                startTransition(() => {
+                  onInputChange(nextSearchValue);
+                  setSearchResults(queryRes ?? []);
+                });
               }}
             >
               <ComboboxInput

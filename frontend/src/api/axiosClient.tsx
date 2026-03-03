@@ -15,7 +15,14 @@ axiosClient.interceptors.response.use(
   (res) => res,
   (err) => {
     const message = err.response?.data?.message || "Something went wrong";
-    return Promise.reject(new Error(message));
+    const error = new Error(message) as Error & {
+      errors?: { field: string; message: string }[];
+    };
+    const rawErrors = err.response?.data?.data?.errors;
+    if (Array.isArray(rawErrors)) {
+      error.errors = rawErrors;
+    }
+    return Promise.reject(error);
   },
 );
 

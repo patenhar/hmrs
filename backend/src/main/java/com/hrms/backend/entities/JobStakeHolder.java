@@ -1,5 +1,6 @@
 package com.hrms.backend.entities;
 
+import com.hrms.backend.enums.JobStakeHolderType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,7 +24,6 @@ public class JobStakeHolder extends Auditable {
     @JoinColumn(name = "fk_user_id", referencedColumnName = "pkUserId")
     private User user;
 
-    @ManyToOne()
-    @JoinColumn(name = "fk_job_stakeholder_type_id", referencedColumnName = "pkJobStakeHolderTypeId")
+    @Enumerated(EnumType.STRING)
     private JobStakeHolderType jobStakeHolderType;
 }
